@@ -53,3 +53,25 @@ fun buscarPorTitulo(
         it.titulo.lowercase().contains(criterio)
     }
 }
+fun ordenarActividades(
+    actividades: List<ActividadFormativa>
+): List<ActividadFormativa> {
+
+    return actividades.sortedWith(
+        compareBy<ActividadFormativa>(
+            { it.diasRestantes },
+            { it.progreso }
+        )
+    )
+}
+fun estadoActividad(
+    actividad: ActividadFormativa
+): String {
+
+    return when {
+        actividad.progreso == 100 -> "COMPLETADA"
+        actividad.diasRestantes < 0 -> "VENCIDA"
+        actividad.diasRestantes <= 2 -> "URGENTE"
+        else -> "EN CURSO"
+    }
+}
