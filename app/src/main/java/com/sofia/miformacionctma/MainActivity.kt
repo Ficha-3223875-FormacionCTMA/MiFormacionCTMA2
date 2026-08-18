@@ -287,6 +287,41 @@ Resultado funcional obtenido al finalizar el Sprint y listo para ser entregado.
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+
+                Text(
+                    text = "Ceremonias de Scrum",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text =
+                        """
+• Sprint Planning
+Reunión donde se define qué trabajo se realizará durante el Sprint.
+
+• Daily Scrum
+Reunión diaria corta para revisar el avance, identificar problemas y coordinar el trabajo.
+
+• Sprint Review
+Reunión al finalizar el Sprint donde se presenta y revisa el incremento desarrollado.
+
+• Sprint Retrospective
+Reunión donde el equipo analiza qué salió bien, qué puede mejorar y qué cambios aplicará en el siguiente Sprint.
+                """.trimIndent()
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
 
     }
 }
