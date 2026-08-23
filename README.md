@@ -163,3 +163,65 @@ Se ejecutaron las pruebas unitarias del proyecto utilizando JUnit.
 ## Resultado Semana 2
 
 Se logró implementar y comprobar el funcionamiento de las reglas básicas de las actividades utilizando Kotlin. Además, se documentaron los conceptos principales de Scrum y se realizaron pruebas unitarias positivas y negativas para validar el comportamiento del código.
+
+---
+
+# Semana 3 - Interfaces con Jetpack Compose
+
+Durante la Semana 3 se trabajó en la construcción y validación de la interfaz gráfica de la aplicación **Mi Formación CTMA**, utilizando **Kotlin y Jetpack Compose**.
+
+Se implementó una pantalla para visualizar las actividades formativas mediante componentes reutilizables y se realizaron diferentes pruebas para comprobar el comportamiento de la interfaz.
+
+## Componentes implementados
+
+- `TarjetaActividad.kt`: componente reutilizable para mostrar la información de cada actividad.
+- `PantallaActividades.kt`: pantalla encargada de mostrar la lista de actividades.
+- Uso de `LazyColumn` para visualizar las actividades.
+- Visualización del progreso, días restantes, prioridad y estado de cada actividad.
+- Manejo del estado vacío cuando no existen actividades.
+
+## Pruebas realizadas
+
+Durante las pruebas se verificó:
+
+- Visualización correcta de la lista de actividades.
+- Comportamiento de la interfaz con títulos largos.
+- Visualización del estado vacío.
+- Adaptación de la interfaz utilizando una fuente de mayor tamaño.
+- Adaptación de la aplicación a una pantalla de tablet.
+
+## Evidencias Semana 3
+
+### 1. Lista de actividades
+
+La aplicación muestra correctamente las actividades formativas mediante tarjetas.
+
+![Lista de actividades](evidencias/semana3/01_lista_actividades.png)
+
+### 2. Prueba con título largo
+
+Se comprobó que las tarjetas pueden mostrar títulos extensos sin perder información.
+
+![Título largo](evidencias/semana3/02_titulo_largo.png)
+
+### 3. Estado vacío
+
+Se verificó el comportamiento de la pantalla cuando no existen actividades para mostrar.
+
+![Estado vacío](evidencias/semana3/03_estado_vacio.png)
+
+### 4. Prueba con fuente grande
+
+Se comprobó el comportamiento de la interfaz utilizando un tamaño de fuente mayor.
+
+![Fuente grande](evidencias/semana3/04_fuente_grande.png)
+
+### 5. Prueba en pantalla ancha
+
+La aplicación fue ejecutada en un dispositivo virtual **Medium Tablet API 35** para comprobar su adaptación a una pantalla de mayor tamaño.
+
+![Pantalla ancha](evidencias/semana3/05_pantalla_ancha.png)
+
+## Resultado Semana 3
+
+Se logró implementar una interfaz organizada mediante componentes reutilizables en Jetpack Compose. Las pruebas realizadas permitieron comprobar que la información de las actividades se visualiza correctamente en diferentes condiciones y tamaños de pantalla.
