@@ -29,3 +29,15 @@ Los aprendices manejan actividades, fechas y evidencias en diferentes canales, l
 * Kotlin
 * Jetpack Compose
 * Git y GitHub
+
+## Semana 4 · Estado, formularios y navegación
+
+El incremento de Semana 4 conserva la interfaz de Semana 3 y agrega:
+- estado `FormularioActividadUiState` y flujo unidireccional de eventos;
+- formulario stateless para crear actividades;
+- validación de título, descripción, fecha y progreso;
+- `rememberSaveable` para conservar el borrador al recrear la Activity;
+- Navigation Compose con destinos Lista, Crear y Detalle;
+- navegación por `actividadId` y manejo controlado de actividad inexistente;
+- guardado de una sola actividad y retorno mediante `popBackStack()`;
+- pruebas unitarias de validaciones y casos límite.

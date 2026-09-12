@@ -48,7 +48,7 @@ fun PantallaActividades(
                     horizontal = 20.dp,
                     vertical = 16.dp
                 ),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
 
             Text(
@@ -78,6 +78,15 @@ fun PantallaActividades(
                                 )} por ciento."
                 }
             )
+
+            Button(
+                onClick = onEmptyAction,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Nueva actividad"
+                )
+            }
         }
 
         if (actividades.isEmpty()) {

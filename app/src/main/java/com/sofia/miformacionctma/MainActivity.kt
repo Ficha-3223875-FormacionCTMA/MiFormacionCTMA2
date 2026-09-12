@@ -1,20 +1,39 @@
 package com.sofia.miformacionctma
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.sofia.miformacionctma.domain.ActividadFormativa
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.sofia.miformacionctma.domain.Prioridad
+import com.sofia.miformacionctma.ui.screens.ActividadesViewModel
+import com.sofia.miformacionctma.ui.screens.DetalleActividadScreen
+import com.sofia.miformacionctma.ui.screens.FormularioActividad
 import com.sofia.miformacionctma.ui.screens.PantallaActividades
+import com.sofia.miformacionctma.ui.state.FormularioActividadUiState
 import com.sofia.miformacionctma.ui.theme.MiFormacionCTMATheme
+import com.sofia.miformacionctma.ui.screens.validarFormularioActividad
+
 
 class MainActivity : ComponentActivity() {
 
@@ -23,137 +42,228 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        val actividades = crearActividadesSemana3()
-
         setContent {
             MiFormacionCTMATheme {
-
-                Scaffold(
-                    modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
-
-                    PantallaActividades(
-                        actividades = actividades,
-                        modifier = Modifier.padding(innerPadding),
-                        onActividadClick = { actividad ->
-
-                            Toast.makeText(
-                                this,
-                                "Seleccionaste: ${actividad.titulo}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    )
-                }
+                MiFormacionApp()
             }
         }
     }
 }
 
-private fun crearActividadesSemana3(): List<ActividadFormativa> {
 
-    return listOf(
-
-        ActividadFormativa(
-            id = 1L,
-            titulo = "Configurar Android Studio",
-            descripcion = "Preparar el entorno de desarrollo",
-            progreso = 100,
-            diasRestantes = -2,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 2L,
-            titulo = "Kotlin básico",
-            descripcion = "Practicar variables y condiciones",
-            progreso = 80,
-            diasRestantes = 1,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 3L,
-            titulo = "Null safety",
-            descripcion = "Aplicar seguridad frente a valores nulos",
-            progreso = 40,
-            diasRestantes = 2,
-            prioridad = Prioridad.MEDIA
-        ),
-
-        ActividadFormativa(
-            id = 4L,
-            titulo = "Entregar evidencia",
-            descripcion = "Subir las capturas del proyecto",
-            progreso = 20,
-            diasRestantes = -1,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 5L,
-            titulo = "Repasar colecciones",
-            descripcion = "Practicar listas y operaciones sobre colecciones",
-            progreso = 0,
-            diasRestantes = 5,
-            prioridad = Prioridad.BAJA
-        ),
-
-        ActividadFormativa(
-            id = 6L,
-            titulo = "Funciones en Kotlin",
-            descripcion = "Practicar funciones y parámetros",
-            progreso = 65,
-            diasRestantes = 3,
-            prioridad = Prioridad.MEDIA
-        ),
-
-        ActividadFormativa(
-            id = 7L,
-            titulo = "Data classes",
-            descripcion = "Crear modelos para la aplicación",
-            progreso = 30,
-            diasRestantes = 4,
-            prioridad = Prioridad.MEDIA
-        ),
-
-        ActividadFormativa(
-            id = 8L,
-            titulo = "Colecciones Kotlin",
-            descripcion = "Trabajar con listas y filtros",
-            progreso = 75,
-            diasRestantes = 6,
-            prioridad = Prioridad.BAJA
-        ),
-
-        ActividadFormativa(
-            id = 9L,
-            titulo = "Diseño de interfaz",
-            descripcion = "Preparar la interfaz de Mi Formación CTMA",
-            progreso = 50,
-            diasRestantes = 7,
-            prioridad = Prioridad.MEDIA
-        ),
-
-        ActividadFormativa(
-            id = 10L,
-            titulo = "Evidencia Semana 3",
-            descripcion = "Preparar capturas de la aplicación",
-            progreso = 10,
-            diasRestantes = 1,
-            prioridad = Prioridad.ALTA
-        )
-    )
-}
-
-@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MainActivityPreview() {
+fun MiFormacionApp(
+    viewModel: ActividadesViewModel = viewModel()
+) {
 
-    MiFormacionCTMATheme {
+    val navController = rememberNavController()
 
-        PantallaActividades(
-            actividades = crearActividadesSemana3()
-        )
+    val actividades by viewModel.actividades.collectAsState()
+
+    NavHost(
+        navController = navController,
+        startDestination = "lista"
+    ) {
+
+        // --------------------------------------------------
+        // PANTALLA DE LISTA
+        // --------------------------------------------------
+
+        composable("lista") {
+
+            PantallaActividades(
+                actividades = actividades,
+
+                onActividadClick = { actividad ->
+                    navController.navigate(
+                        "detalle/${actividad.id}"
+                    )
+                },
+
+                onEmptyAction = {
+                    navController.navigate("crear")
+                },
+
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+
+        // --------------------------------------------------
+        // PANTALLA CREAR ACTIVIDAD
+        // --------------------------------------------------
+
+        composable("crear") {
+
+            var state by rememberSaveable(
+                stateSaver = FormularioActividadStateSaver
+            ) {
+                mutableStateOf(
+                    FormularioActividadUiState()
+                )
+            }
+
+            Scaffold(
+
+                topBar = {
+
+                    TopAppBar(
+                        title = {
+                            Text("Nueva actividad")
+                        }
+                    )
+                }
+
+            ) { padding ->
+
+                FormularioActividad(
+
+                    uiState = state,
+
+                    onTituloChange = {
+                        state =
+                            validarFormularioActividad(
+                                state.copy(
+                                    titulo = it.take(80)
+                                )
+                            )
+                    },
+
+                    onDescripcionChange = {
+                        state =
+                            validarFormularioActividad(
+                                state.copy(
+                                    descripcion = it.take(241)
+                                )
+                            )
+                    },
+
+                    onFechaChange = {
+                        state =
+                            validarFormularioActividad(
+                                state.copy(
+                                    fecha = it
+                                )
+                            )
+                    },
+
+                    onPrioridadChange = {
+                        state =
+                            state.copy(
+                                prioridad = it
+                            )
+                    },
+
+                    onProgresoChange = {
+                        state =
+                            validarFormularioActividad(
+                                state.copy(
+                                    progreso = it
+                                        .filter(Char::isDigit)
+                                        .take(3)
+                                )
+                            )
+                    },
+
+                    onGuardar = {
+
+                        if (state.puedeGuardar) {
+
+                            viewModel.agregar(state)
+
+                            navController.popBackStack()
+                        }
+                    },
+
+                    modifier = Modifier.padding(padding)
+                )
+            }
+        }
+
+
+        // --------------------------------------------------
+        // PANTALLA DETALLE
+        // --------------------------------------------------
+
+        composable(
+            route = "detalle/{actividadId}",
+
+            arguments = listOf(
+                navArgument("actividadId") {
+                    type = NavType.LongType
+                }
+            )
+        ) { entry ->
+
+            val id =
+                entry.arguments?.getLong(
+                    "actividadId"
+                )
+
+            DetalleActividadScreen(
+                viewModel.buscar(
+                    id ?: -1L
+                )
+            ) {
+
+                navController.popBackStack()
+            }
+        }
     }
 }
+
+
+// --------------------------------------------------
+// SAVER PARA EL FORMULARIO
+// --------------------------------------------------
+
+private val FormularioActividadStateSaver =
+    Saver<FormularioActividadUiState, List<String>>(
+
+        save = {
+
+            listOf(
+                it.titulo,
+                it.descripcion,
+                it.fecha,
+                it.prioridad.name,
+                it.progreso
+            )
+        },
+
+        restore = { v ->
+
+            FormularioActividadUiState(
+
+                titulo = v.getOrElse(0) {
+                    ""
+                },
+
+                descripcion = v.getOrElse(1) {
+                    ""
+                },
+
+                fecha = v.getOrElse(2) {
+                    ""
+                },
+
+                prioridad =
+                    runCatching {
+
+                        Prioridad.valueOf(
+                            v.getOrElse(3) {
+                                "MEDIA"
+                            }
+                        )
+
+                    }.getOrDefault(
+                        Prioridad.MEDIA
+                    ),
+
+                progreso = v.getOrElse(4) {
+                    "0"
+                }
+            )
+        }
+    )
