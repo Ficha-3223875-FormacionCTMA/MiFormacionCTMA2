@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MiFormacionCTMA2 - Mock Semana 4</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .contenedor {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        h1 {
+            color: #222;
+        }
+
+        .aviso {
+            background: #fff3cd;
+            border: 1px solid #ffe69c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tarjeta {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .guardar {
+            background: #198754;
+            color: white;
+        }
+
+        .invalido {
+            background: #dc3545;
+            color: white;
+        }
+
+        #resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+
+        .correcto {
+            color: #198754;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <h1>MiFormacionCTMA2</h1>
+    <h2>Laboratorio WEB - Semana 4</h2>
+
+    <div class="aviso">
+        <strong>Entorno académico simulado.</strong><br>
+        Esta página se utiliza únicamente para practicar pruebas WEB
+        y Chrome DevTools. No corresponde a la interfaz Android real
+        de MiFormacionCTMA2.
+    </div>
+
+    <div class="tarjeta">
+
+        <h3>Crear actividad</h3>
+
+        <label for="titulo">Título</label>
+        <input
+                type="text"
+                id="titulo"
+                value="Estudiar Kotlin"
+        >
+
+        <label for="descripcion">Descripción</label>
+        <input
+                type="text"
+                id="descripcion"
+                value="Repasar funciones y colecciones"
+        >
+
+        <label for="progreso">Progreso</label>
+        <input
+                type="number"
+                id="progreso"
+                value="50"
+        >
+
+        <button
+                class="guardar"
+                onclick="crearActividadValida()">
+            Probar caso positivo
+        </button>
+
+        <button
+                class="invalido"
+                onclick="crearActividadInvalida()">
+            Probar caso negativo
+        </button>
+
+    </div>
+
+    <div class="tarjeta">
+
+        <h3>Resultado de la prueba</h3>
+
+        <div id="resultado">
+            Todavía no se ha ejecutado ninguna prueba.
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    const resultado = document.getElementById("resultado");
+
+    function crearActividadValida() {
+
+        const actividad = {
+            titulo: document.getElementById("titulo").value,
+            descripcion: document.getElementById("descripcion").value,
+            progreso: 50
+        };
+
+        console.log(
+            "CP-MF-001 - Ejecutando caso positivo",
+            actividad
+        );
+
+        fetch("https://jsonplaceholder.typicode.com/posts", {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(actividad)
+        })
+        .then(response => {
+
+            console.log(
+                "Código HTTP recibido:",
+                response.status
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Error HTTP: " + response.status
+                );
+            }
+
+            return response.json();
+        })
+        .then(data => {
+
+            console.log(
+                "Respuesta recibida:",
+                data
+            );
+
+            resultado.innerHTML =
+                '<span class="correcto">PASS - Caso positivo</span>\n\n' +
+                JSON.stringify(data, null, 2);
+
+            localStorage.setItem(
+                "ultimaPrueba",
+                "CP-MF-001 PASS"
+            );
+        })
+        .catch(error => {
+
+            console.error(
+                "Error durante la prueba:",
+                error
+            );
+
+            resultado.innerHTML =
+                '<span class="error">ERROR EN LA SOLICITUD</span>\n\n' +
+                error.message;
+        });
+    }
+
+
+    function crearActividadInvalida() {
+
+        const actividad = {
+            titulo: "AB",
+            descripcion: "Dato sintético",
+            progreso: 101
+        };
+
+        console.log(
+            "CP-MF-005 / CP-MF-006 - Caso negativo simulado",
+            actividad
+        );
+
+        /*
+         * La validación se realiza en este mock WEB
+         * para representar los casos negativos
+         * definidos para MiFormacionCTMA2.
+         */
+
+        if (
+            actividad.titulo.length < 3 ||
+            actividad.progreso < 0 ||
+            actividad.progreso > 100
+        ) {
+
+            console.warn(
+                "Validación rechazada correctamente"
+            );
+
+            resultado.innerHTML =
+                '<span class="correcto">PASS - Caso negativo</span>\n\n' +
+                'La actividad fue rechazada por datos inválidos.\n' +
+                'Título: ' + actividad.titulo + '\n' +
+                'Progreso: ' + actividad.progreso;
+
+            localStorage.setItem(
+                "ultimaPrueba",
+                "CP-MF-005/006 PASS"
+            );
+
+            return;
+        }
+
+        console.error(
+            "La aplicación permitió datos inválidos"
+        );
+
+        resultado.innerHTML =
+            '<span class="error">FAIL</span>\n\n' +
+            'La aplicación permitió datos inválidos.';
+    }
+
+</script>
+
+</body>
+</html>
