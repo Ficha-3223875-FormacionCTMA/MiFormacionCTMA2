@@ -1,23 +1,22 @@
 package com.sofia.miformacionctma.ui.screens
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.sofia.miformacionctma.data.ActividadRepository
 import com.sofia.miformacionctma.domain.ActividadFormativa
 import com.sofia.miformacionctma.domain.Prioridad
 import com.sofia.miformacionctma.ui.state.FormularioActividadUiState
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-class ActividadesViewModel : ViewModel() {
-
- private val _actividades =
-  MutableStateFlow(crearActividadesSemana3())
+class ActividadesViewModel(
+ private val repository: ActividadRepository
+) : ViewModel() {
 
  val actividades: StateFlow<List<ActividadFormativa>> =
-  _actividades.asStateFlow()
+  repository.actividades
 
  fun agregar(s: FormularioActividadUiState) {
 
@@ -26,7 +25,7 @@ class ActividadesViewModel : ViewModel() {
   val diasRestantes = calcularDiasRestantes(s.fecha)
 
   val nuevaActividad = ActividadFormativa(
-   id = (_actividades.value.maxOfOrNull { it.id } ?: 0) + 1,
+   id = 0L,
    titulo = s.titulo.trim(),
    descripcion = s.descripcion.trim().ifBlank { null },
    progreso = progreso,
@@ -35,42 +34,74 @@ class ActividadesViewModel : ViewModel() {
    fecha = s.fecha
   )
 
-  _actividades.value = _actividades.value + nuevaActividad
+  repository.agregar(nuevaActividad)
  }
 
  fun buscar(id: Long): ActividadFormativa? {
-  return _actividades.value.firstOrNull { it.id == id }
+  return actividades.value.firstOrNull { it.id == id }
+ }
+ fun eliminar(id: Long) {
+  repository.eliminar(id)
+ }
+}
+
+class ActividadesViewModelFactory(
+ private val repository: ActividadRepository
+) : ViewModelProvider.Factory {
+
+ @Suppress("UNCHECKED_CAST")
+ override fun <T : ViewModel> create(
+  modelClass: Class<T>
+ ): T {
+
+  if (modelClass.isAssignableFrom(ActividadesViewModel::class.java)) {
+   return ActividadesViewModel(repository) as T
+  }
+
+  throw IllegalArgumentException(
+   "ViewModel desconocido: ${modelClass.name}"
+  )
  }
 }
 
 /**
  * Calcula cuántos días faltan para la fecha indicada.
- * Se utiliza SimpleDateFormat para que funcione desde API 24.
+ * Se utiliza SimpleDateFormat para funcionar desde API 24.
  */
 fun calcularDiasRestantes(fecha: String): Int {
 
  return try {
 
-  val formato = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+  val formato =
+   SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
   formato.isLenient = false
 
-  val fechaActividad = formato.parse(fecha) ?: return 0
+  val fechaActividad =
+   formato.parse(fecha) ?: return 0
 
   val hoy = Calendar.getInstance()
 
-  val fechaHoy = formato.parse(
-   formato.format(hoy.time)
-  ) ?: return 0
+  val fechaHoy =
+   formato.parse(formato.format(hoy.time))
+    ?: return 0
 
-  val diferencia = fechaActividad.time - fechaHoy.time
+  val diferencia =
+   fechaActividad.time - fechaHoy.time
 
   (diferencia / (1000 * 60 * 60 * 24)).toInt()
 
  } catch (e: Exception) {
+
   0
  }
 }
 
+/**
+ * Datos de ejemplo de la Semana 3.
+ * Se conservan como referencia y no se insertan automáticamente
+ * en Room para evitar duplicados cada vez que inicia la aplicación.
+ */
 fun crearActividadesSemana3() = listOf(
 
  ActividadFormativa(
@@ -226,29 +257,35 @@ fun validarFecha(fecha: String): String? {
 
  return try {
 
-  val formato = SimpleDateFormat(
-   "yyyy-MM-dd",
-   Locale.getDefault()
-  )
+  val formato =
+   SimpleDateFormat(
+    "yyyy-MM-dd",
+    Locale.getDefault()
+   )
 
   formato.isLenient = false
 
-  val fechaIngresada = formato.parse(fecha)
-   ?: return "Usa una fecha válida: AAAA-MM-DD"
+  val fechaIngresada =
+   formato.parse(fecha)
+    ?: return "Usa una fecha válida: AAAA-MM-DD"
 
   val hoy = Calendar.getInstance()
 
-  val fechaHoy = formato.parse(
-   formato.format(hoy.time)
-  ) ?: return "Usa una fecha válida: AAAA-MM-DD"
+  val fechaHoy =
+   formato.parse(formato.format(hoy.time))
+    ?: return "Usa una fecha válida: AAAA-MM-DD"
 
   if (fechaIngresada.before(fechaHoy)) {
+
    "La fecha no puede ser anterior a hoy"
+
   } else {
+
    null
   }
 
  } catch (e: Exception) {
+
   "Usa una fecha válida: AAAA-MM-DD"
  }
 }

@@ -19,20 +19,23 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.sofia.miformacionctma.data.container.AppContainer
 import com.sofia.miformacionctma.domain.Prioridad
 import com.sofia.miformacionctma.ui.screens.ActividadesViewModel
+import com.sofia.miformacionctma.ui.screens.ActividadesViewModelFactory
 import com.sofia.miformacionctma.ui.screens.DetalleActividadScreen
 import com.sofia.miformacionctma.ui.screens.FormularioActividad
 import com.sofia.miformacionctma.ui.screens.PantallaActividades
+import com.sofia.miformacionctma.ui.screens.validarFormularioActividad
 import com.sofia.miformacionctma.ui.state.FormularioActividadUiState
 import com.sofia.miformacionctma.ui.theme.MiFormacionCTMATheme
-import com.sofia.miformacionctma.ui.screens.validarFormularioActividad
 
 
 class MainActivity : ComponentActivity() {
@@ -53,9 +56,19 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MiFormacionApp(
-    viewModel: ActividadesViewModel = viewModel()
-) {
+fun MiFormacionApp() {
+
+    val context = LocalContext.current
+
+    val appContainer = remember {
+        AppContainer(context.applicationContext)
+    }
+
+    val viewModel: ActividadesViewModel = viewModel(
+        factory = ActividadesViewModelFactory(
+            appContainer.actividadRepository
+        )
+    )
 
     val navController = rememberNavController()
 
@@ -66,10 +79,9 @@ fun MiFormacionApp(
         startDestination = "lista"
     ) {
 
-        // --------------------------------------------------
-        // PANTALLA DE LISTA
-        // --------------------------------------------------
-
+        /*
+         * LISTA DE ACTIVIDADES
+         */
         composable("lista") {
 
             PantallaActividades(
@@ -90,10 +102,9 @@ fun MiFormacionApp(
         }
 
 
-        // --------------------------------------------------
-        // PANTALLA CREAR ACTIVIDAD
-        // --------------------------------------------------
-
+        /*
+         * CREAR NUEVA ACTIVIDAD
+         */
         composable("crear") {
 
             var state by rememberSaveable(
@@ -122,48 +133,48 @@ fun MiFormacionApp(
                     uiState = state,
 
                     onTituloChange = {
-                        state =
-                            validarFormularioActividad(
-                                state.copy(
-                                    titulo = it.take(80)
-                                )
+
+                        state = validarFormularioActividad(
+                            state.copy(
+                                titulo = it.take(80)
                             )
+                        )
                     },
 
                     onDescripcionChange = {
-                        state =
-                            validarFormularioActividad(
-                                state.copy(
-                                    descripcion = it.take(241)
-                                )
+
+                        state = validarFormularioActividad(
+                            state.copy(
+                                descripcion = it.take(241)
                             )
+                        )
                     },
 
                     onFechaChange = {
-                        state =
-                            validarFormularioActividad(
-                                state.copy(
-                                    fecha = it
-                                )
+
+                        state = validarFormularioActividad(
+                            state.copy(
+                                fecha = it
                             )
+                        )
                     },
 
                     onPrioridadChange = {
-                        state =
-                            state.copy(
-                                prioridad = it
-                            )
+
+                        state = state.copy(
+                            prioridad = it
+                        )
                     },
 
                     onProgresoChange = {
-                        state =
-                            validarFormularioActividad(
-                                state.copy(
-                                    progreso = it
-                                        .filter(Char::isDigit)
-                                        .take(3)
-                                )
+
+                        state = validarFormularioActividad(
+                            state.copy(
+                                progreso = it
+                                    .filter(Char::isDigit)
+                                    .take(3)
                             )
+                        )
                     },
 
                     onGuardar = {
@@ -182,10 +193,9 @@ fun MiFormacionApp(
         }
 
 
-        // --------------------------------------------------
-        // PANTALLA DETALLE
-        // --------------------------------------------------
-
+        /*
+         * DETALLE DE ACTIVIDAD
+         */
         composable(
             route = "detalle/{actividadId}",
 
@@ -194,30 +204,36 @@ fun MiFormacionApp(
                     type = NavType.LongType
                 }
             )
+
         ) { entry ->
 
-            val id =
-                entry.arguments?.getLong(
-                    "actividadId"
-                )
+            val id = entry.arguments?.getLong("actividadId")
 
             DetalleActividadScreen(
-                viewModel.buscar(
-                    id ?: -1L
-                )
-            ) {
+                actividad = id?.let {
+                    viewModel.buscar(it)
+                },
 
-                navController.popBackStack()
-            }
+                onBack = {
+                    navController.popBackStack()
+                },
+
+                onEliminar = { actividadId ->
+
+                    viewModel.eliminar(actividadId)
+
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
 
 
-// --------------------------------------------------
-// SAVER PARA EL FORMULARIO
-// --------------------------------------------------
-
+/*
+ * Saver para conservar temporalmente
+ * los datos escritos en el formulario.
+ */
 private val FormularioActividadStateSaver =
     Saver<FormularioActividadUiState, List<String>>(
 
@@ -236,17 +252,20 @@ private val FormularioActividadStateSaver =
 
             FormularioActividadUiState(
 
-                titulo = v.getOrElse(0) {
-                    ""
-                },
+                titulo =
+                    v.getOrElse(0) {
+                        ""
+                    },
 
-                descripcion = v.getOrElse(1) {
-                    ""
-                },
+                descripcion =
+                    v.getOrElse(1) {
+                        ""
+                    },
 
-                fecha = v.getOrElse(2) {
-                    ""
-                },
+                fecha =
+                    v.getOrElse(2) {
+                        ""
+                    },
 
                 prioridad =
                     runCatching {
@@ -261,9 +280,10 @@ private val FormularioActividadStateSaver =
                         Prioridad.MEDIA
                     ),
 
-                progreso = v.getOrElse(4) {
-                    "0"
-                }
+                progreso =
+                    v.getOrElse(4) {
+                        "0"
+                    }
             )
         }
     )
