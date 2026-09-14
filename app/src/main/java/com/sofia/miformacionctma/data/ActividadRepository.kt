@@ -4,61 +4,40 @@ import com.sofia.miformacionctma.data.local.ActividadDao
 import com.sofia.miformacionctma.data.local.toDomain
 import com.sofia.miformacionctma.data.local.toEntity
 import com.sofia.miformacionctma.domain.ActividadFormativa
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
-class ActividadRepository(
+interface ActividadRepository {
+    fun observarTodas(): Flow<List<ActividadFormativa>>
+    fun buscarPorTexto(texto: String): Flow<List<ActividadFormativa>>
+    suspend fun buscarPorId(id: Long): ActividadFormativa?
+    suspend fun agregar(actividad: ActividadFormativa)
+    suspend fun actualizar(actividad: ActividadFormativa)
+    suspend fun eliminar(id: Long)
+}
+
+class RoomActividadRepository(
     private val dao: ActividadDao
-) {
+) : ActividadRepository {
 
-    private val scope = CoroutineScope(
-        SupervisorJob() + Dispatchers.IO
-    )
+    override fun observarTodas(): Flow<List<ActividadFormativa>> =
+        dao.observarTodas().map { lista -> lista.map { it.toDomain() } }
 
-    val actividades: StateFlow<List<ActividadFormativa>> =
-        dao.observarTodas()
-            .map { lista ->
-                lista.map { it.toDomain() }
-            }
-            .stateIn(
-                scope = scope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
+    override fun buscarPorTexto(texto: String): Flow<List<ActividadFormativa>> =
+        dao.buscarPorTexto(texto).map { lista -> lista.map { it.toDomain() } }
 
-    fun agregar(actividad: ActividadFormativa) {
-        scope.launch {
-            dao.insertar(actividad.toEntity())
-        }
+    override suspend fun buscarPorId(id: Long): ActividadFormativa? =
+        dao.buscarPorId(id)?.toDomain()
+
+    override suspend fun agregar(actividad: ActividadFormativa) {
+        dao.insertar(actividad.toEntity())
     }
 
-    fun actualizar(actividad: ActividadFormativa) {
-        scope.launch {
-            dao.actualizar(actividad.toEntity())
-        }
+    override suspend fun actualizar(actividad: ActividadFormativa) {
+        dao.actualizar(actividad.toEntity())
     }
 
-    fun eliminar(id: Long) {
-        scope.launch {
-            dao.eliminarPorId(id)
-        }
-    }
-
-    suspend fun buscarPorId(id: Long): ActividadFormativa? {
-        return dao.buscarPorId(id)?.toDomain()
-    }
-
-    fun buscarPorTexto(texto: String): Flow<List<ActividadFormativa>> {
-        return dao.buscarPorTexto(texto)
-            .map { lista ->
-                lista.map { it.toDomain() }
-            }
+    override suspend fun eliminar(id: Long) {
+        dao.eliminarPorId(id)
     }
 }

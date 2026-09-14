@@ -56,6 +56,7 @@ dependencies {
 
     // Lifecycle y ViewModel
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     // Navegación
@@ -71,6 +72,7 @@ dependencies {
 
     // Pruebas unitarias
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     // Pruebas instrumentadas
     androidTestImplementation(platform(libs.androidx.compose.bom))

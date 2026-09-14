@@ -8,45 +8,78 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.preferenciasDataStore by preferencesDataStore(name = "preferencias_reportactma")
+private val Context.dataStore by preferencesDataStore(name = "preferencias")
 
 data class PreferenciasUi(
     val categoriaId: String? = null,
     val orden: String = "TITULO_ASC",
-    val modoVisualizacion: String = "LISTA"
+    val modoVisualizacion: String = "LISTA",
+    val filtrosActivos: Boolean = false
 )
 
-class PreferenciasRepository(private val context: Context) {
+interface PreferenciasSource {
+
+    val preferencias: Flow<PreferenciasUi>
+
+    suspend fun guardarCategoria(categoriaId: String?)
+
+    suspend fun guardarOrden(orden: String)
+
+    suspend fun guardarModoVisualizacion(modo: String)
+
+    suspend fun guardarFiltrosActivos(activos: Boolean)
+}
+
+class PreferenciasRepository(
+    private val context: Context
+) : PreferenciasSource {
+
     private object Keys {
-        val categoria = stringPreferencesKey("categoria_filtro")
-        val orden = stringPreferencesKey("orden")
-        val modo = stringPreferencesKey("modo_visualizacion")
-        val filtrosActivos = booleanPreferencesKey("filtros_activos")
+        val CATEGORIA_FILTRO = stringPreferencesKey("categoria_filtro")
+        val ORDEN = stringPreferencesKey("orden")
+        val MODO_VISUALIZACION = stringPreferencesKey("modo_visualizacion")
+        val FILTROS_ACTIVOS = booleanPreferencesKey("filtros_activos")
     }
 
-    val preferencias: Flow<PreferenciasUi> = context.preferenciasDataStore.data.map { prefs ->
-        PreferenciasUi(
-            categoriaId = prefs[Keys.categoria],
-            orden = prefs[Keys.orden] ?: "TITULO_ASC",
-            modoVisualizacion = prefs[Keys.modo] ?: "LISTA"
-        )
-    }
+    override val preferencias: Flow<PreferenciasUi> =
+        context.dataStore.data.map { preferences ->
 
-    suspend fun guardarCategoria(categoriaId: String?) {
-        context.preferenciasDataStore.edit { prefs ->
-            if (categoriaId == null) prefs.remove(Keys.categoria) else prefs[Keys.categoria] = categoriaId
+            PreferenciasUi(
+                categoriaId = preferences[Keys.CATEGORIA_FILTRO],
+                orden = preferences[Keys.ORDEN] ?: "TITULO_ASC",
+                modoVisualizacion =
+                    preferences[Keys.MODO_VISUALIZACION] ?: "LISTA",
+                filtrosActivos =
+                    preferences[Keys.FILTROS_ACTIVOS] ?: false
+            )
+        }
+
+    override suspend fun guardarCategoria(categoriaId: String?) {
+        context.dataStore.edit { preferences ->
+
+            if (categoriaId == null) {
+                preferences.remove(Keys.CATEGORIA_FILTRO)
+            } else {
+                preferences[Keys.CATEGORIA_FILTRO] = categoriaId
+            }
         }
     }
 
-    suspend fun guardarOrden(orden: String) {
-        context.preferenciasDataStore.edit { it[Keys.orden] = orden }
+    override suspend fun guardarOrden(orden: String) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.ORDEN] = orden
+        }
     }
 
-    suspend fun guardarModoVisualizacion(modo: String) {
-        context.preferenciasDataStore.edit { it[Keys.modo] = modo }
+    override suspend fun guardarModoVisualizacion(modo: String) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.MODO_VISUALIZACION] = modo
+        }
     }
 
-    suspend fun guardarFiltrosActivos(activos: Boolean) {
-        context.preferenciasDataStore.edit { it[Keys.filtrosActivos] = activos }
+    override suspend fun guardarFiltrosActivos(activos: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.FILTROS_ACTIVOS] = activos
+        }
     }
 }
