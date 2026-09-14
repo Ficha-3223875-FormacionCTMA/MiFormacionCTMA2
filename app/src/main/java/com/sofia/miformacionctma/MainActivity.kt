@@ -4,339 +4,197 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.sofia.miformacionctma.domain.ActividadFormativa
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.sofia.miformacionctma.data.container.AppContainer
 import com.sofia.miformacionctma.domain.Prioridad
-import com.sofia.miformacionctma.domain.buscarPorTitulo
-import com.sofia.miformacionctma.domain.estadoActividad
-import com.sofia.miformacionctma.domain.generarResumen
-import com.sofia.miformacionctma.domain.ordenarActividades
-import com.sofia.miformacionctma.domain.validarActividad
+import com.sofia.miformacionctma.ui.screens.ActividadesViewModel
+import com.sofia.miformacionctma.ui.screens.ActividadesViewModelFactory
+import com.sofia.miformacionctma.ui.screens.DetalleActividadScreen
+import com.sofia.miformacionctma.ui.screens.FormularioActividad
+import com.sofia.miformacionctma.ui.screens.PantallaActividadesSemana7
+import com.sofia.miformacionctma.ui.screens.validarFormularioActividad
+import com.sofia.miformacionctma.ui.state.FormularioActividadUiState
+import com.sofia.miformacionctma.ui.state.ListadoUiState
 import com.sofia.miformacionctma.ui.theme.MiFormacionCTMATheme
-class MainActivity : ComponentActivity() {
 
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
-
-        val datos = crearDatosPantalla()
-
         setContent {
             MiFormacionCTMATheme {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
+                MiFormacionApp()
+            }
+        }
+    }
+}
 
-                    ContenidoSemana2(
-                        datos = datos,
-                        modifier = Modifier.padding(innerPadding)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MiFormacionApp() {
+    val context = LocalContext.current
+    val appContainer = remember {
+        AppContainer(context.applicationContext)
+    }
+
+    val viewModel: ActividadesViewModel = viewModel(
+        factory = ActividadesViewModelFactory(
+            appContainer.actividadRepository,
+            appContainer.preferenciasRepository
+        )
+    )
+
+    val navController = rememberNavController()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val operacionUiState by viewModel.operacionUiState.collectAsStateWithLifecycle()
+    val textoBusqueda by viewModel.textoBusqueda.collectAsStateWithLifecycle()
+    val preferencias by viewModel.preferencias.collectAsStateWithLifecycle()
+
+    NavHost(
+        navController = navController,
+        startDestination = "lista"
+    ) {
+        composable("lista") {
+            PantallaActividadesSemana7(
+                uiState = uiState,
+                operacionUiState = operacionUiState,
+                textoBusqueda = textoBusqueda,
+                orden = preferencias.orden,
+                modoVisualizacion = preferencias.modoVisualizacion,
+                onBusquedaChange = viewModel::cambiarBusqueda,
+                onOrdenChange = viewModel::guardarOrden,
+                onModoChange = viewModel::guardarModoVisualizacion,
+                onActividadClick = { actividad ->
+                    navController.navigate("detalle/${actividad.id}")
+                },
+                onNuevaActividad = {
+                    navController.navigate("crear")
+                },
+                onReintentar = viewModel::reintentar,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        composable("crear") {
+            var state by rememberSaveable(
+                stateSaver = FormularioActividadStateSaver
+            ) {
+                mutableStateOf(FormularioActividadUiState())
+            }
+
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Nueva actividad") }
                     )
                 }
-            }
-        }
-    }
-}
-
-private data class PantallaDatos(
-    val resumen: String,
-    val actividadPrioritaria: String,
-    val busqueda: String,
-    val validacion: String
-)
-
-private fun crearDatosPantalla(): PantallaDatos {
-
-    val actividades = listOf(
-        ActividadFormativa(
-            id = 1L,
-            titulo = "Configurar Android Studio",
-            descripcion = "Preparar el entorno de desarrollo",
-            progreso = 100,
-            diasRestantes = -2,
-            prioridad = Prioridad.ALTA
-        ),
-        ActividadFormativa(
-            id = 2L,
-            titulo = "Kotlin básico",
-            descripcion = "Practicar variables y condiciones",
-            progreso = 80,
-            diasRestantes = 1,
-            prioridad = Prioridad.ALTA
-        ),
-        ActividadFormativa(
-            id = 3L,
-            titulo = "Null safety",
-            descripcion = null,
-            progreso = 40,
-            diasRestantes = 2,
-            prioridad = Prioridad.MEDIA
-        ),
-        ActividadFormativa(
-            id = 4L,
-            titulo = "Entregar evidencia",
-            descripcion = "Subir las capturas del proyecto",
-            progreso = 20,
-            diasRestantes = -1,
-            prioridad = Prioridad.ALTA
-        ),
-        ActividadFormativa(
-            id = 5L,
-            titulo = "Repasar colecciones",
-            descripcion = null,
-            progreso = 0,
-            diasRestantes = 5,
-            prioridad = Prioridad.BAJA
-        )
-    )
-
-    val ordenadas = ordenarActividades(actividades)
-    val primera = ordenadas.firstOrNull()
-
-    val actividadPrioritaria = if (primera != null) {
-
-        val descripcion = primera.descripcion
-            ?.takeIf { it.isNotBlank() }
-            ?: "Sin descripción registrada"
-
-        """
-            ${primera.titulo}
-            Estado: ${estadoActividad(primera)}
-            Prioridad: ${primera.prioridad}
-            Días restantes: ${primera.diasRestantes}
-            Descripción: $descripcion
-        """.trimIndent()
-
-    } else {
-        "No hay actividades registradas"
-    }
-
-    val coincidencias = buscarPorTitulo(
-        actividades = actividades,
-        texto = " kotlin "
-    )
-
-    val resultadoBusqueda = coincidencias.firstOrNull()?.let {
-        "Coincidencia encontrada: ${it.titulo}"
-    } ?: "No se encontraron coincidencias"
-
-    val errores = validarActividad(
-        titulo = " ",
-        progreso = 120
-    )
-
-    val resultadoValidacion = if (errores.isEmpty()) {
-        "Datos válidos"
-    } else {
-        errores.joinToString(separator = "\n")
-    }
-
-    return PantallaDatos(
-        resumen = generarResumen(actividades),
-        actividadPrioritaria = actividadPrioritaria,
-        busqueda = resultadoBusqueda,
-        validacion = resultadoValidacion
-    )
-}
-
-@Composable
-private fun ContenidoSemana2(
-    datos: PantallaDatos,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp)
-    ) {
-        Text(
-            text = "Mi Formación CTMA",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Text(
-            text = "Semana 2 · Fundamentos de Kotlin",
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        TarjetaInformacion(
-            titulo = "Resumen de actividades",
-            contenido = datos.resumen
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TarjetaInformacion(
-            titulo = "Actividad prioritaria",
-            contenido = datos.actividadPrioritaria
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TarjetaInformacion(
-            titulo = "Prueba de búsqueda",
-            contenido = datos.busqueda
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TarjetaInformacion(
-            titulo = "Prueba de validación",
-            contenido = datos.validacion
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Card {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "¿Qué es Scrum?",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Scrum es un marco de trabajo ágil utilizado para desarrollar productos de forma colaborativa e incremental mediante iteraciones llamadas Sprints."
+            ) { padding ->
+                FormularioActividad(
+                    uiState = state,
+                    onTituloChange = {
+                        state = validarFormularioActividad(
+                            state.copy(titulo = it.take(80))
+                        )
+                    },
+                    onDescripcionChange = {
+                        state = validarFormularioActividad(
+                            state.copy(descripcion = it.take(241))
+                        )
+                    },
+                    onFechaChange = {
+                        state = validarFormularioActividad(
+                            state.copy(fecha = it)
+                        )
+                    },
+                    onPrioridadChange = {
+                        state = state.copy(prioridad = it)
+                    },
+                    onProgresoChange = {
+                        state = validarFormularioActividad(
+                            state.copy(
+                                progreso = it.filter(Char::isDigit).take(3)
+                            )
+                        )
+                    },
+                    onGuardar = {
+                        if (state.puedeGuardar) {
+                            viewModel.agregar(state)
+                            navController.popBackStack()
+                        }
+                    },
+                    modifier = Modifier.padding(padding)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Card {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-
-                Text(
-                    text = "Roles de Scrum",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text =
-                        """
-• Product Owner
-Representa al cliente, define las prioridades del producto y administra el Product Backlog.
-
-• Scrum Master
-Facilita la aplicación de Scrum, elimina impedimentos y apoya al equipo.
-
-• Developers
-Equipo de desarrollo encargado de construir y entregar el incremento del producto en cada Sprint.
-            """.trimIndent()
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-
-
-
-
-        Card {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-
-                Text(
-                    text = "Artefactos de Scrum",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text =
-                        """
-• Product Backlog
-Lista priorizada de requisitos, funcionalidades y mejoras del producto.
-
-• Sprint Backlog
-Conjunto de tareas seleccionadas para desarrollarse durante un Sprint.
-
-• Incremento
-Resultado funcional obtenido al finalizar el Sprint y listo para ser entregado.
-                """.trimIndent()
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-
-    }
-}
-
-@Composable
-private fun TarjetaInformacion(
-    titulo: String,
-    contenido: String
-) {
-    Card {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = titulo,
-                style = MaterialTheme.typography.titleMedium
+        composable(
+            route = "detalle/{actividadId}",
+            arguments = listOf(
+                navArgument("actividadId") {
+                    type = NavType.LongType
+                }
             )
+        ) { entry ->
+            val id = entry.arguments?.getLong("actividadId")
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(text = contenido)
+            DetalleActividadScreen(
+                actividad = id?.let { viewModel.buscar(it) },
+                onBack = {
+                    navController.popBackStack()
+                },
+                onEliminar = { actividadId ->
+                    viewModel.eliminar(actividadId)
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun ContenidoSemana2Preview() {
-    MiFormacionCTMATheme {
-        ContenidoSemana2(
-            datos = PantallaDatos(
-                resumen = """
-                    Total de actividades: 5
-                    Promedio: 48.0 %
-                    Completadas: 1
-                    Vencidas: 1
-                    Urgentes: 3
-                """.trimIndent(),
-                actividadPrioritaria = """
-                    Entregar evidencia
-                    Estado: VENCIDA
-                    Prioridad: ALTA
-                    Días restantes: -1
-                """.trimIndent(),
-                busqueda = "Coincidencia encontrada: Kotlin básico",
-                validacion = """
-                    El título es obligatorio
-                    El progreso debe estar entre 0 y 100
-                """.trimIndent()
+private val FormularioActividadStateSaver =
+    Saver<FormularioActividadUiState, List<String>>(
+        save = {
+            listOf(
+                it.titulo,
+                it.descripcion,
+                it.fecha,
+                it.prioridad.name,
+                it.progreso
             )
-        )
-    }
-}
+        },
+        restore = { v ->
+            FormularioActividadUiState(
+                titulo = v.getOrElse(0) { "" },
+                descripcion = v.getOrElse(1) { "" },
+                fecha = v.getOrElse(2) { "" },
+                prioridad = runCatching {
+                    Prioridad.valueOf(
+                        v.getOrElse(3) { "MEDIA" }
+                    )
+                }.getOrDefault(Prioridad.MEDIA),
+                progreso = v.getOrElse(4) { "0" }
+            )
+        }
+    )
