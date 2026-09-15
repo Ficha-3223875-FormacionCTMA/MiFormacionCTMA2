@@ -45,9 +45,9 @@ ksp {
 }
 
 dependencies {
-    implementation(platform(libs.androidx.compose.bom))
 
     // Android y Jetpack Compose
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
@@ -78,7 +78,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     // Pruebas unitarias
-    testImplementation(libs.junit)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("com.squareup.okhttp3:mockwebserver3:5.5.0")
     testImplementation(libs.kotlinx.coroutines.test)
 
     // Pruebas instrumentadas
