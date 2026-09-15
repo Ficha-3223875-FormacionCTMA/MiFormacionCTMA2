@@ -1,5 +1,5 @@
 package com.sofia.miformacionctma.data.local
-
+import androidx.room3.Transaction
 import androidx.room3.Dao
 import androidx.room3.Delete
 import androidx.room3.Insert
@@ -26,6 +26,16 @@ interface ActividadDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(actividad: ActividadEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertarTodas(actividades: List<ActividadEntity>)
+
+    @Transaction
+    suspend fun guardarTodasDesdeServidor(
+        actividades: List<ActividadEntity>
+    ) {
+        insertarTodas(actividades)
+    }
 
     @Update
     suspend fun actualizar(actividad: ActividadEntity)

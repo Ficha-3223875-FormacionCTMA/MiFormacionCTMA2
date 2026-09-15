@@ -17,7 +17,19 @@ sqlite = "2.7.1"
 dataStore = "1.1.7"
 coroutines = "1.10.2"
 
+# Semana 8 - Servicios Web
+retrofit = "3.0.0"
+okhttp = "5.5.0"
+serialization = "1.11.0"
+
 [libraries]
+# Semana 8 - Servicios Web
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
+
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 
 # Room 3
 androidx-room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
@@ -67,3 +79,6 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 
 # Kotlin Compose
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+

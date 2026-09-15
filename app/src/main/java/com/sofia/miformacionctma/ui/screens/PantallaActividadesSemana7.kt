@@ -1,4 +1,5 @@
 package com.sofia.miformacionctma.ui.screens
+import com.sofia.miformacionctma.data.ActualizacionResultado
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +44,7 @@ fun PantallaActividadesSemana7(
     onActividadClick: (ActividadFormativa) -> Unit,
     onNuevaActividad: () -> Unit,
     onReintentar: () -> Unit,
+    actualizacionUiState: ActualizacionResultado,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -107,6 +109,62 @@ fun PantallaActividadesSemana7(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Nueva actividad")
+            }
+
+            when (val actualizacion = actualizacionUiState) {
+
+                ActualizacionResultado.NoDisponible -> {
+                    OutlinedButton(
+                        onClick = onReintentar,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Actualizar desde servidor")
+                    }
+                }
+
+                is ActualizacionResultado.Exitosa -> {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "✓ Datos actualizados correctamente.",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Text(
+                            text = "Actividades recibidas: ${actualizacion.cantidad}"
+                        )
+
+                        OutlinedButton(
+                            onClick = onReintentar,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Actualizar nuevamente")
+                        }
+                    }
+                }
+
+                is ActualizacionResultado.Fallida -> {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "No se pudo actualizar desde el servidor.",
+                            color = MaterialTheme.colorScheme.error
+                        )
+
+                        Text(
+                            text = actualizacion.mensaje
+                        )
+
+                        OutlinedButton(
+                            onClick = onReintentar,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Reintentar")
+                        }
+                    }
+                }
             }
 
             when (val operacion = operacionUiState) {
