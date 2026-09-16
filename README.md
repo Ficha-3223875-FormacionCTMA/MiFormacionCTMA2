@@ -1118,6 +1118,61 @@ Trazabilidad.
 
 
 
+🟣 Semana 6 - Persistencia local con Room
+
+Durante la Semana 6 se implementó la persistencia local de la información utilizando Room.
+
+Principales implementaciones:
+
+- Base de datos local con Room.
+- Entidades y DAOs para las actividades y reportes.
+- Repositorios para gestionar el acceso a los datos.
+- Mapeadores entre entidades y modelos de dominio.
+- Migraciones de la base de datos.
+- Pruebas instrumentadas para DAO y migraciones.
+- Integración de Room con la aplicación Android.
+
+Rama: feature/semana-06-room
+
+
+🔵 Semana 7 - Corrutinas y Flow
+
+Durante la Semana 7 se implementó el manejo de operaciones asíncronas y estado reactivo mediante Kotlin Coroutines y Flow.
+
+Principales implementaciones:
+
+- Uso de corrutinas para operaciones asíncronas.
+- Uso de Flow para observar cambios de datos.
+- Estados reactivos para la interfaz.
+- Búsqueda y ordenamiento de actividades.
+- Ordenamiento por nombre y progreso.
+- Vista de lista y cuadrícula.
+- Actualización de información desde el servidor.
+- Manejo de estados de carga, éxito y error.
+- Pruebas del ViewModel utilizando corrutinas.
+
+Rama: feature/semana-07-coroutines-flow
+
+
+🟢 Semana 8 - Servicios web con Retrofit
+
+Durante la Semana 8 se implementó el consumo de servicios web REST mediante Retrofit y Kotlin Serialization.
+
+Principales implementaciones:
+
+- Configuración de Retrofit.
+- Consumo de servicios REST.
+- DTOs para los datos de la API.
+- Kotlin Serialization para serialización y deserialización.
+- RemoteDataSource para la comunicación con el servidor.
+- Integración de datos remotos con el repositorio.
+- Integración con Room para la persistencia local.
+- Manejo de errores de comunicación y respuestas HTTP.
+- Pruebas con MockWebServer.
+
+Rama: feature/semana-08-servicios-web
+
+
 📊 Funcionalidades actuales de la aplicación
 
 
@@ -1382,7 +1437,7 @@ Actualmente el proyecto cuenta con:
 
 
 
-Desarrollo Android de las Semanas 1, 2, 3 y 4.
+Desarrollo Android de las Semanas 1, 2, 3, 4, 6, 7 y 8.
 
 
 
