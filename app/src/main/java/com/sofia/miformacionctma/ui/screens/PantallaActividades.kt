@@ -3,11 +3,14 @@ package com.sofia.miformacionctma.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,49 +25,122 @@ import com.sofia.miformacionctma.ui.theme.MiFormacionCTMATheme
 @Composable
 fun PantallaActividades(
     actividades: List<ActividadFormativa>,
+    ordenActual: String = "FECHA",
+    onCambiarOrden: (String) -> Unit = {},
+    onEditar: (ActividadFormativa) -> Unit = {},
+    onEliminar: (ActividadFormativa) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-
     Scaffold(
         modifier = modifier.fillMaxSize()
     ) { innerPadding ->
 
-        if (actividades.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
 
-            EstadoVacio(
-                modifier = Modifier.padding(innerPadding)
+            Text(
+                text = "Mi Formación CTMA",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp
+                )
             )
 
-        } else {
+            Text(
+                text = "Actividades formativas",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 8.dp
+                )
+            )
 
-            Column(
+            Text(
+                text = "Ordenar por:",
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp
+                )
+            )
+
+            Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+                    .fillMaxWidth()
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 8.dp
+                    ),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
 
-                Text(
-                    text = "Mi Formación CTMA",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 16.dp
+                OutlinedButton(
+                    onClick = {
+                        onCambiarOrden("FECHA")
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = if (ordenActual == "FECHA") {
+                            "✓ Días"
+                        } else {
+                            "Días"
+                        }
                     )
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        onCambiarOrden("TITULO")
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = if (ordenActual == "TITULO") {
+                            "✓ Título"
+                        } else {
+                            "Título"
+                        }
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        onCambiarOrden("PROGRESO")
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = if (ordenActual == "PROGRESO") {
+                            "✓ Progreso"
+                        } else {
+                            "Progreso"
+                        }
+                    )
+                }
+            }
+
+            if (actividades.isEmpty()) {
+
+                EstadoVacio(
+                    modifier = Modifier.weight(1f)
                 )
 
-                Text(
-                    text = "Actividades formativas",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        bottom = 8.dp
-                    )
-                )
+            } else {
 
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -77,7 +153,13 @@ fun PantallaActividades(
                     ) { actividad ->
 
                         TarjetaActividad(
-                            actividad = actividad
+                            actividad = actividad,
+                            onEditar = {
+                                onEditar(actividad)
+                            },
+                            onEliminar = {
+                                onEliminar(actividad)
+                            }
                         )
                     }
                 }
@@ -90,10 +172,9 @@ fun PantallaActividades(
 private fun EstadoVacio(
     modifier: Modifier = Modifier
 ) {
-
     Column(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(24.dp)
     ) {
 
@@ -122,7 +203,6 @@ private fun PantallaActividadesPreview() {
             diasRestantes = -2,
             prioridad = Prioridad.ALTA
         ),
-
         ActividadFormativa(
             id = 2L,
             titulo = "Kotlin básico",
@@ -131,11 +211,10 @@ private fun PantallaActividadesPreview() {
             diasRestantes = 1,
             prioridad = Prioridad.ALTA
         ),
-
         ActividadFormativa(
             id = 3L,
-            titulo = "Actividad con un título bastante largo para comprobar que la tarjeta se adapte correctamente",
-            descripcion = "Esta actividad sirve para probar títulos largos.",
+            titulo = "Actividad Room",
+            descripcion = "Comprobar persistencia local",
             progreso = 50,
             diasRestantes = 3,
             prioridad = Prioridad.MEDIA
@@ -144,7 +223,8 @@ private fun PantallaActividadesPreview() {
 
     MiFormacionCTMATheme {
         PantallaActividades(
-            actividades = actividadesEjemplo
+            actividades = actividadesEjemplo,
+            ordenActual = "TITULO"
         )
     }
 }

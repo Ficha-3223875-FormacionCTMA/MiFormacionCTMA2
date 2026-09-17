@@ -4,10 +4,28 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sofia.miformacionctma.data.local.DatabaseProvider
+import com.sofia.miformacionctma.data.preferences.PreferencesRepository
+import com.sofia.miformacionctma.data.repository.ActividadRepository
 import com.sofia.miformacionctma.domain.ActividadFormativa
-import com.sofia.miformacionctma.domain.Prioridad
 import com.sofia.miformacionctma.ui.screens.PantallaActividades
+import com.sofia.miformacionctma.ui.screens.PantallaCrearActividad
 import com.sofia.miformacionctma.ui.theme.MiFormacionCTMATheme
+import com.sofia.miformacionctma.ui.viewmodel.ActividadViewModel
+import com.sofia.miformacionctma.ui.viewmodel.ActividadViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -16,110 +34,109 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        val actividades = crearActividadesSemana3()
+        val database = DatabaseProvider.getDatabase(applicationContext)
+
+        val actividadRepository = ActividadRepository(
+            actividadDao = database.actividadDao()
+        )
+
+        val preferencesRepository = PreferencesRepository(
+            context = applicationContext
+        )
+
+        val viewModelFactory = ActividadViewModelFactory(
+            repository = actividadRepository,
+            preferencesRepository = preferencesRepository
+        )
 
         setContent {
+
             MiFormacionCTMATheme {
-                PantallaActividades(
-                    actividades = actividades
+
+                val actividadViewModel: ActividadViewModel = viewModel(
+                    factory = viewModelFactory
                 )
+
+                val actividades by actividadViewModel.actividades.collectAsState()
+
+                val ordenActual by
+                actividadViewModel.ordenActividades.collectAsState()
+
+                var mostrarFormulario by remember {
+                    mutableStateOf(false)
+                }
+
+                var actividadEditar by remember {
+                    mutableStateOf<ActividadFormativa?>(null)
+                }
+
+                if (mostrarFormulario) {
+
+                    PantallaCrearActividad(
+                        actividadEditar = actividadEditar,
+
+                        onGuardar = { actividad ->
+
+                            if (actividadEditar == null) {
+                                actividadViewModel.insertar(actividad)
+                            } else {
+                                actividadViewModel.actualizar(actividad)
+                            }
+
+                            actividadEditar = null
+                            mostrarFormulario = false
+                        },
+
+                        onCancelar = {
+                            actividadEditar = null
+                            mostrarFormulario = false
+                        }
+                    )
+
+                } else {
+
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+
+                        Button(
+                            onClick = {
+                                actividadEditar = null
+                                mostrarFormulario = true
+                            },
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 16.dp
+                            )
+                        ) {
+                            Text("Nueva actividad")
+                        }
+
+                        PantallaActividades(
+                            actividades = actividades,
+                            ordenActual = ordenActual,
+
+                            onCambiarOrden = { nuevoOrden ->
+                                actividadViewModel.guardarOrden(
+                                    nuevoOrden
+                                )
+                            },
+
+                            onEditar = { actividad ->
+                                actividadEditar = actividad
+                                mostrarFormulario = true
+                            },
+
+                            onEliminar = { actividad ->
+                                actividadViewModel.eliminar(actividad)
+                            },
+
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
             }
         }
     }
-}
-
-private fun crearActividadesSemana3(): List<ActividadFormativa> {
-
-    return listOf(
-
-        ActividadFormativa(
-            id = 1L,
-            titulo = "Configurar Android Studio",
-            descripcion = "Preparar correctamente el entorno de desarrollo.",
-            progreso = 100,
-            diasRestantes = -2,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 2L,
-            titulo = "Repasar fundamentos de Kotlin",
-            descripcion = "Practicar variables, funciones, condiciones y colecciones.",
-            progreso = 80,
-            diasRestantes = 1,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 3L,
-            titulo = "Practicar Null Safety",
-            descripcion = "Aplicar operadores seguros para evitar errores con valores nulos.",
-            progreso = 60,
-            diasRestantes = 2,
-            prioridad = Prioridad.MEDIA
-        ),
-
-        ActividadFormativa(
-            id = 4L,
-            titulo = "Crear modelo ActividadFormativa",
-            descripcion = "Representar correctamente los datos del dominio.",
-            progreso = 100,
-            diasRestantes = 0,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 5L,
-            titulo = "Implementar reglas de negocio",
-            descripcion = "Crear funciones de validación, estado, búsqueda y promedio.",
-            progreso = 70,
-            diasRestantes = 3,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 6L,
-            titulo = "Realizar pruebas unitarias",
-            descripcion = "Comprobar casos positivos, negativos y estados de actividad.",
-            progreso = 100,
-            diasRestantes = 0,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 7L,
-            titulo = "Documentar Scrum",
-            descripcion = "Registrar roles, artefactos y ceremonias de Scrum.",
-            progreso = 100,
-            diasRestantes = 1,
-            prioridad = Prioridad.MEDIA
-        ),
-
-        ActividadFormativa(
-            id = 8L,
-            titulo = "Crear componente TarjetaActividad",
-            descripcion = "Diseñar un componente Compose reutilizable.",
-            progreso = 90,
-            diasRestantes = 2,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 9L,
-            titulo = "Construir PantallaActividades",
-            descripcion = "Mostrar las actividades mediante LazyColumn.",
-            progreso = 70,
-            diasRestantes = 3,
-            prioridad = Prioridad.ALTA
-        ),
-
-        ActividadFormativa(
-            id = 10L,
-            titulo = "Actividad con un título muy largo para comprobar que la interfaz se adapta correctamente sin cortar el contenido",
-            descripcion = "Prueba visual solicitada para validar títulos largos.",
-            progreso = 0,
-            diasRestantes = 5,
-            prioridad = Prioridad.BAJA
-        )
-    )
 }
