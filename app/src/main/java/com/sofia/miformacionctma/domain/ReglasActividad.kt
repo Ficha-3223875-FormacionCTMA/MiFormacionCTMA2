@@ -69,5 +69,5 @@ fun ordenarActividades(
 // Función agregada para la prueba TDD de Semana 8.
 // Por ahora devuelve false porque estamos en la fase RED.
 fun progresoEsValidoParaCompletar(progreso: Int): Boolean {
-    return false
+    return progreso == 100
 }
