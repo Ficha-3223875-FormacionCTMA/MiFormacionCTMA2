@@ -11,6 +11,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
@@ -73,5 +74,49 @@ class ActividadApiTest {
         assertEquals(1, resultado.size)
         assertEquals("Actividad de prueba", resultado[0].titulo)
         assertEquals(50, resultado[0].progreso)
+    }
+
+    @Test
+    fun obtenerActividades_respuesta404() = runTest {
+
+        server.enqueue(
+            MockResponse(
+                code = 404,
+                body = """
+                    {
+                        "detail": "Actividades no encontradas"
+                    }
+                """.trimIndent()
+            )
+        )
+
+        try {
+            api.obtenerActividades()
+            throw AssertionError("Se esperaba una excepción HTTP 404")
+        } catch (error: HttpException) {
+            assertEquals(404, error.code())
+        }
+    }
+
+    @Test
+    fun obtenerActividades_respuesta500() = runTest {
+
+        server.enqueue(
+            MockResponse(
+                code = 500,
+                body = """
+                    {
+                        "detail": "Error interno del servidor"
+                    }
+                """.trimIndent()
+            )
+        )
+
+        try {
+            api.obtenerActividades()
+            throw AssertionError("Se esperaba una excepción HTTP 500")
+        } catch (error: HttpException) {
+            assertEquals(500, error.code())
+        }
     }
 }
