@@ -23,6 +23,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Semana 8 - Cobertura de pruebas unitarias
+            enableUnitTestCoverage = true
+        }
+
         release {
             optimization {
                 enable = false
