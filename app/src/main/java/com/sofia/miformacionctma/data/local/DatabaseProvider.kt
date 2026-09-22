@@ -5,6 +5,7 @@ import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 
 object DatabaseProvider {
+
     @Volatile
     private var INSTANCE: AppDatabase? = null
 
@@ -16,7 +17,10 @@ object DatabaseProvider {
                 "reportactma.db"
             )
                 .setDriver(BundledSQLiteDriver())
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(
+                    MIGRATION_1_2,
+                    MIGRATION_2_3
+                )
                 .build()
                 .also { INSTANCE = it }
         }

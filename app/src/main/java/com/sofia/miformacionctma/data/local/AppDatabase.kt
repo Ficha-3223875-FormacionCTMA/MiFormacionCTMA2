@@ -7,9 +7,10 @@ import androidx.room3.RoomDatabase
     entities = [
         ReporteEntity::class,
         CategoriaEntity::class,
-        ActividadEntity::class
+        ActividadEntity::class,
+        EvidenciaEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -19,4 +20,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun categoriaDao(): CategoriaDao
 
     abstract fun actividadDao(): ActividadDao
+
+    abstract fun evidenciaDao(): EvidenciaDao
 }
