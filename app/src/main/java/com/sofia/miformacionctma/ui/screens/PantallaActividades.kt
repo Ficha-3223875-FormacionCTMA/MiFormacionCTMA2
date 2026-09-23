@@ -9,36 +9,47 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.sofia.miformacionctma.domain.ActividadFormativa
-import com.sofia.miformacionctma.domain.Prioridad
 import com.sofia.miformacionctma.ui.components.TarjetaActividad
-import com.sofia.miformacionctma.ui.theme.MiFormacionCTMATheme
+import com.sofia.miformacionctma.ui.viewmodel.ListadoUiState
+import com.sofia.miformacionctma.ui.viewmodel.OperacionUiState
 
 @Composable
 fun PantallaActividades(
-    actividades: List<ActividadFormativa>,
-    ordenActual: String = "FECHA",
-    onCambiarOrden: (String) -> Unit = {},
-    onEditar: (ActividadFormativa) -> Unit = {},
-    onEliminar: (ActividadFormativa) -> Unit = {},
+    uiState: ListadoUiState,
+    operacion: OperacionUiState,
+    busqueda: String,
+    ordenActual: String,
+    filtroPrioridad: String,
+    modoVisualizacion: String,
+    onBuscar: (String) -> Unit,
+    onCambiarOrden: (String) -> Unit,
+    onCambiarFiltro: (String) -> Unit,
+    onCambiarModo: (String) -> Unit,
+    onCrear: () -> Unit,
+    onEditar: (ActividadFormativa) -> Unit,
+    onEliminar: (ActividadFormativa) -> Unit,
+    onReintentar: () -> Unit,
+    onSimularError: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
-        modifier = modifier.fillMaxSize()
-    ) { innerPadding ->
-
+    Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(innerPadding).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
             Text(
@@ -61,71 +72,27 @@ fun PantallaActividades(
                 )
             )
 
-            Text(
-                text = "Ordenar por:",
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 8.dp
-                )
+            OutlinedTextField(
+                value = busqueda,
+                onValueChange = onBuscar,
+                label = { Text("Buscar por título") },
+                supportingText = { Text("La búsqueda más reciente reemplaza la anterior") },
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 8.dp,
-                        bottom = 8.dp
-                    ),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-
-                OutlinedButton(
-                    onClick = {
-                        onCambiarOrden("FECHA")
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = if (ordenActual == "FECHA") {
-                            "✓ Días"
-                        } else {
-                            "Días"
-                        }
-                    )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Selector("FECHA", "Días", ordenActual, onCambiarOrden, Modifier.weight(1f))
+                Selector("TITULO", "Título", ordenActual, onCambiarOrden, Modifier.weight(1f))
+                Selector("PROGRESO", "Progreso", ordenActual, onCambiarOrden, Modifier.weight(1f))
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                listOf("TODAS" to "Todas", "BAJA" to "Baja", "MEDIA" to "Media", "ALTA" to "Alta").forEach { (valor, texto) ->
+                    Selector(valor, texto, filtroPrioridad, onCambiarFiltro, Modifier.weight(1f))
                 }
-
-                OutlinedButton(
-                    onClick = {
-                        onCambiarOrden("TITULO")
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = if (ordenActual == "TITULO") {
-                            "✓ Título"
-                        } else {
-                            "Título"
-                        }
-                    )
-                }
-
-                OutlinedButton(
-                    onClick = {
-                        onCambiarOrden("PROGRESO")
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = if (ordenActual == "PROGRESO") {
-                            "✓ Progreso"
-                        } else {
-                            "Progreso"
-                        }
-                    )
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { onCambiarModo(if (modoVisualizacion == "DETALLADO") "COMPACTO" else "DETALLADO") }, modifier = Modifier.weight(1f)) {
+                    Text(if (modoVisualizacion == "DETALLADO") "Vista detallada" else "Vista compacta")
                 }
             }
 
@@ -134,35 +101,6 @@ fun PantallaActividades(
                 EstadoVacio(
                     modifier = Modifier.weight(1f)
                 )
-
-            } else {
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-
-                    items(
-                        items = actividades,
-                        key = { actividad ->
-                            actividad.id
-                        }
-                    ) { actividad ->
-
-                        TarjetaActividad(
-                            actividad = actividad,
-                            onEditar = {
-                                onEditar(actividad)
-                            },
-                            onEliminar = {
-                                onEliminar(actividad)
-                            }
-                        )
-                    }
-                }
             }
         }
     }
@@ -190,48 +128,22 @@ private fun EstadoVacio(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun PantallaActividadesPreview() {
-
-    val actividadesEjemplo = listOf(
-        ActividadFormativa(
-            id = 1L,
-            titulo = "Configurar Android Studio",
-            descripcion = "Preparar el entorno de desarrollo",
-            progreso = 100,
-            diasRestantes = -2,
-            prioridad = Prioridad.ALTA
-        ),
-        ActividadFormativa(
-            id = 2L,
-            titulo = "Kotlin básico",
-            descripcion = "Practicar variables, condiciones y funciones",
-            progreso = 80,
-            diasRestantes = 1,
-            prioridad = Prioridad.ALTA
-        ),
-        ActividadFormativa(
-            id = 3L,
-            titulo = "Actividad Room",
-            descripcion = "Comprobar persistencia local",
-            progreso = 50,
-            diasRestantes = 3,
-            prioridad = Prioridad.MEDIA
-        )
-    )
-
-    MiFormacionCTMATheme {
-        PantallaActividades(
-            actividades = actividadesEjemplo,
-            ordenActual = "TITULO"
-        )
+@Composable private fun EstadoVacio(onCrear: () -> Unit, modifier: Modifier) {
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Text("No hay actividades para mostrar", style = MaterialTheme.typography.titleLarge)
+        Text("Crea una actividad o cambia la búsqueda y el filtro.")
+        Button(onClick = onCrear, modifier = Modifier.padding(top = 12.dp)) { Text("Crear actividad") }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun PantallaActividadesVaciaPreview() {
+@Composable private fun EstadoError(mensaje: String, onReintentar: () -> Unit, onSimularError: () -> Unit, modifier: Modifier) {
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Text("No pudimos cargar la información", style = MaterialTheme.typography.titleLarge)
+        Text(mensaje)
+        Button(onClick = onReintentar, modifier = Modifier.padding(top = 12.dp)) { Text("Reintentar") }
+        OutlinedButton(onClick = onSimularError) { Text("Repetir error de prueba") }
+    }
+}
 
     MiFormacionCTMATheme {
         PantallaActividades(

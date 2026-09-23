@@ -5,43 +5,48 @@ import com.sofia.miformacionctma.data.mapper.toDomain
 import com.sofia.miformacionctma.data.mapper.toEntity
 import com.sofia.miformacionctma.domain.ActividadFormativa
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 class ActividadRepository(
     private val actividadDao: ActividadDao
-) {
+) : ActividadDataSource {
 
-    fun observarTodas(): Flow<List<ActividadFormativa>> {
-        return actividadDao.observarTodas().map { entidades ->
-            entidades.map { it.toDomain() }
-        }
+    override fun observarTodas(): Flow<List<ActividadFormativa>> =
+        actividadDao.observarTodas()
+            .map { lista ->
+                lista.map { it.toDomain() }
+            }
+
+    override fun buscarPorTitulo(texto: String): Flow<List<ActividadFormativa>> =
+        actividadDao.buscarPorTitulo(texto)
+            .map { lista ->
+                lista.map { it.toDomain() }
+            }
+
+    override fun observarConFalloSimulado(): Flow<List<ActividadFormativa>> = flow {
+        throw IllegalStateException("Fallo simulado para CA-05")
     }
 
-    fun observarPorId(id: Long): Flow<ActividadFormativa?> {
-        return actividadDao.observarPorId(id).map { entidad ->
-            entidad?.toDomain()
-        }
-    }
+    override fun observarPorId(id: Long): Flow<ActividadFormativa?> =
+        actividadDao.observarPorId(id)
+            .map { it?.toDomain() }
 
-    fun buscarPorTitulo(texto: String): Flow<List<ActividadFormativa>> {
-        return actividadDao.buscarPorTitulo(texto).map { entidades ->
-            entidades.map { it.toDomain() }
-        }
-    }
+    override suspend fun insertar(
+        actividad: ActividadFormativa
+    ): Long =
+        actividadDao.insertar(actividad.toEntity())
 
-    suspend fun insertar(actividad: ActividadFormativa): Long {
-        return actividadDao.insertar(actividad.toEntity())
-    }
-
-    suspend fun actualizar(actividad: ActividadFormativa) {
+    override suspend fun actualizar(
+        actividad: ActividadFormativa
+    ) =
         actividadDao.actualizar(actividad.toEntity())
-    }
 
-    suspend fun eliminar(actividad: ActividadFormativa) {
+    override suspend fun eliminar(
+        actividad: ActividadFormativa
+    ) =
         actividadDao.eliminar(actividad.toEntity())
-    }
 
-    suspend fun eliminarTodas() {
+    override suspend fun eliminarTodas() =
         actividadDao.eliminarTodas()
-    }
 }

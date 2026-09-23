@@ -2,12 +2,12 @@ package com.sofia.miformacionctma.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.sofia.miformacionctma.data.preferences.PreferencesRepository
-import com.sofia.miformacionctma.data.repository.ActividadRepository
+import com.sofia.miformacionctma.data.preferences.PreferenciasDataSource
+import com.sofia.miformacionctma.data.repository.ActividadDataSource
 
 class ActividadViewModelFactory(
-    private val repository: ActividadRepository,
-    private val preferencesRepository: PreferencesRepository
+    private val repository: ActividadDataSource,
+    private val preferencesRepository: PreferenciasDataSource
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")

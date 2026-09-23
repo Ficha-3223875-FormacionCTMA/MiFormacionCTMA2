@@ -2,10 +2,12 @@ package com.sofia.miformacionctma.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -41,6 +43,12 @@ fun PantallaCrearActividad(
 
     var diasRestantesTexto by remember(actividadEditar) {
         mutableStateOf(actividadEditar?.diasRestantes?.toString() ?: "0")
+    }
+
+    // Para actividades nuevas se inicia en MEDIA.
+    // Al editar, conserva la prioridad que ya tenía la actividad.
+    var prioridadSeleccionada by remember(actividadEditar) {
+        mutableStateOf(actividadEditar?.prioridad ?: Prioridad.MEDIA)
     }
 
     var mensajeError by remember(actividadEditar) {
@@ -90,6 +98,44 @@ fun PantallaCrearActividad(
             modifier = Modifier.fillMaxWidth()
         )
 
+        Text(text = "Prioridad")
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+            FilterChip(
+                selected = prioridadSeleccionada == Prioridad.BAJA,
+                onClick = {
+                    prioridadSeleccionada = Prioridad.BAJA
+                },
+                label = {
+                    Text("Baja")
+                }
+            )
+
+            FilterChip(
+                selected = prioridadSeleccionada == Prioridad.MEDIA,
+                onClick = {
+                    prioridadSeleccionada = Prioridad.MEDIA
+                },
+                label = {
+                    Text("Media")
+                }
+            )
+
+            FilterChip(
+                selected = prioridadSeleccionada == Prioridad.ALTA,
+                onClick = {
+                    prioridadSeleccionada = Prioridad.ALTA
+                },
+                label = {
+                    Text("Alta")
+                }
+            )
+        }
+
         mensajeError?.let {
             Text(text = it)
         }
@@ -125,8 +171,7 @@ fun PantallaCrearActividad(
                                     .ifBlank { null },
                                 progreso = progreso,
                                 diasRestantes = diasRestantes,
-                                prioridad = actividadEditar?.prioridad
-                                    ?: Prioridad.MEDIA
+                                prioridad = prioridadSeleccionada
                             )
                         )
                     }
