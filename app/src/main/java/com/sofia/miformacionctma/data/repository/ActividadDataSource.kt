@@ -8,9 +8,9 @@ interface ActividadDataSource {
     fun observarConFalloSimulado(): Flow<List<ActividadFormativa>>
     fun observarPorId(id: Long): Flow<ActividadFormativa?>
     fun buscarPorTitulo(texto: String): Flow<List<ActividadFormativa>>
-
     suspend fun insertar(actividad: ActividadFormativa): Long
     suspend fun actualizar(actividad: ActividadFormativa)
     suspend fun eliminar(actividad: ActividadFormativa)
     suspend fun eliminarTodas()
+    suspend fun refresh(): Int = 0
 }

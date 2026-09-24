@@ -1,16 +1,14 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room3)
 }
 
 android {
     namespace = "com.sofia.miformacionctma"
-
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk { version = release(37) }
 
     defaultConfig {
         applicationId = "com.sofia.miformacionctma"
@@ -18,16 +16,27 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-            optimization {
-                enable = false
-            }
+    flavorDimensions += "entorno"
+    productFlavors {
+        create("dev") {
+            dimension = "entorno"
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
         }
+        create("stage") {
+            dimension = "entorno"
+            buildConfigField("String", "API_BASE_URL", "\"https://stage.example.invalid/\"")
+        }
+        create("prod") {
+            dimension = "entorno"
+            buildConfigField("String", "API_BASE_URL", "\"https://api.example.invalid/\"")
+        }
+    }
+
+    buildTypes {
+        release { optimization { enable = false } }
     }
 
     compileOptions {
@@ -37,39 +46,36 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
-room3 {
-    schemaDirectory("$projectDir/schemas")
-}
+room3 { schemaDirectory("$projectDir/schemas") }
 
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
-
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
-
-    // Lifecycle
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-
-    // Room 3
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.room3.runtime)
     ksp(libs.androidx.room3.compiler)
-
-    // SQLite Driver
     implementation(libs.androidx.sqlite.bundled)
-
-    // DataStore
     implementation(libs.androidx.datastore.preferences)
 
-    // Pruebas
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.kotlinx)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
+
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.okhttp.mockwebserver)
 
     androidTestImplementation(libs.androidx.room3.testing)
     androidTestImplementation(platform(libs.androidx.compose.bom))
