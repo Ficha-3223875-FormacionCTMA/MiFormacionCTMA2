@@ -19,12 +19,56 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner =
+            "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // =========================================================
+    // SEMANA 9 - AMBIENTES
+    // =========================================================
+
+    flavorDimensions += "environment"
+
+    productFlavors {
+
+        create("dev") {
+            dimension = "environment"
+
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"http://10.0.2.2:8000/\""
+            )
+        }
+
+        create("stage") {
+            dimension = "environment"
+
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://stage.example.invalid/\""
+            )
+        }
+
+        create("prod") {
+            dimension = "environment"
+
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://api.example.invalid/\""
+            )
+        }
+    }
+
+    // =========================================================
+    // BUILD TYPES
+    // =========================================================
+
     buildTypes {
+
         debug {
-            // Semana 8 - Cobertura de pruebas unitarias
             enableUnitTestCoverage = true
         }
 
@@ -36,25 +80,36 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility =
+            JavaVersion.VERSION_11
+
+        targetCompatibility =
+            JavaVersion.VERSION_11
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
-    // Semana 9 - Los esquemas de Room quedan disponibles
-    // para las pruebas instrumentadas de migración.
+    // =========================================================
+    // ROOM - SEMANA 9
+    // =========================================================
+
     sourceSets {
         getByName("androidTest") {
-            assets.srcDir("$projectDir/schemas")
+            assets.srcDir(
+                "$projectDir/schemas"
+            )
         }
     }
 }
 
 ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
+    arg(
+        "room.schemaLocation",
+        "$projectDir/schemas"
+    )
 }
 
 dependencies {
@@ -63,76 +118,159 @@ dependencies {
     // Android y Jetpack Compose
     // ---------------------------------------------------------
 
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.core.ktx)
+    implementation(
+        platform(
+            libs.androidx.compose.bom
+        )
+    )
+
+    implementation(
+        libs.androidx.activity.compose
+    )
+
+    implementation(
+        libs.androidx.compose.material3
+    )
+
+    implementation(
+        libs.androidx.compose.ui
+    )
+
+    implementation(
+        libs.androidx.compose.ui.graphics
+    )
+
+    implementation(
+        libs.androidx.compose.ui.tooling.preview
+    )
+
+    implementation(
+        libs.androidx.core.ktx
+    )
 
     // ---------------------------------------------------------
     // Lifecycle y ViewModel
     // ---------------------------------------------------------
 
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(
+        libs.androidx.lifecycle.runtime.ktx
+    )
+
+    implementation(
+        libs.androidx.lifecycle.runtime.compose
+    )
+
+    implementation(
+        libs.androidx.lifecycle.viewmodel.compose
+    )
 
     // ---------------------------------------------------------
     // Navegación
     // ---------------------------------------------------------
 
-    implementation(libs.androidx.navigation.compose)
+    implementation(
+        libs.androidx.navigation.compose
+    )
 
     // ---------------------------------------------------------
     // Room 3 + SQLite
     // ---------------------------------------------------------
 
-    implementation(libs.androidx.room3.runtime)
-    implementation(libs.androidx.sqlite.bundled)
-    ksp(libs.androidx.room3.compiler)
+    implementation(
+        libs.androidx.room3.runtime
+    )
+
+    implementation(
+        libs.androidx.sqlite.bundled
+    )
+
+    ksp(
+        libs.androidx.room3.compiler
+    )
 
     // ---------------------------------------------------------
     // DataStore
     // ---------------------------------------------------------
 
-    implementation(libs.androidx.datastore.preferences)
+    implementation(
+        libs.androidx.datastore.preferences
+    )
 
     // ---------------------------------------------------------
     // Semana 8 - Servicios Web
     // ---------------------------------------------------------
 
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.kotlinx.serialization)
-    implementation(libs.okhttp)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(
+        libs.retrofit
+    )
+
+    implementation(
+        libs.retrofit.converter.kotlinx.serialization
+    )
+
+    implementation(
+        libs.okhttp
+    )
+
+    implementation(
+        libs.kotlinx.serialization.json
+    )
 
     // ---------------------------------------------------------
     // Pruebas unitarias
     // ---------------------------------------------------------
 
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("com.squareup.okhttp3:mockwebserver3:5.5.0")
-    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(
+        "junit:junit:4.13.2"
+    )
+
+    testImplementation(
+        "com.squareup.okhttp3:mockwebserver3:5.5.0"
+    )
+
+    testImplementation(
+        libs.kotlinx.coroutines.test
+    )
 
     // ---------------------------------------------------------
     // Pruebas instrumentadas
     // ---------------------------------------------------------
 
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(
+        platform(
+            libs.androidx.compose.bom
+        )
+    )
 
-    // Semana 9 - Pruebas de migración Room
-    androidTestImplementation("androidx.room3:room3-testing:3.0.3")
-    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(
+        libs.androidx.compose.ui.test.junit4
+    )
+
+    androidTestImplementation(
+        libs.androidx.espresso.core
+    )
+
+    androidTestImplementation(
+        libs.androidx.junit
+    )
+
+    androidTestImplementation(
+        "androidx.room3:room3-testing:3.0.3"
+    )
+
+    androidTestImplementation(
+        libs.kotlinx.coroutines.test
+    )
 
     // ---------------------------------------------------------
-    // Herramientas de Compose
+    // Herramientas Compose
     // ---------------------------------------------------------
 
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
-    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(
+        libs.androidx.compose.ui.test.manifest
+    )
+
+    debugImplementation(
+        libs.androidx.compose.ui.tooling
+    )
 }

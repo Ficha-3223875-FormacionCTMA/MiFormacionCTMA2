@@ -1,9 +1,14 @@
 package com.sofia.miformacionctma
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -14,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -32,21 +38,30 @@ import com.sofia.miformacionctma.ui.theme.MiFormacionCTMATheme
 
 class MainActivity : ComponentActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
 
         val container =
-            AppContainer(applicationContext)
+            AppContainer(
+                applicationContext
+            )
 
         setContent {
 
             MiFormacionCTMATheme {
 
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier =
+                        Modifier.fillMaxSize(),
+
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .background
                 ) {
 
                     val navController =
@@ -58,24 +73,30 @@ class MainActivity : ComponentActivity() {
 
                     val viewModel: ActividadesViewModel =
                         viewModel(
-                            factory = ActividadesViewModelFactory(
-                                repository =
-                                    container.actividadRepository,
-                                preferenciasRepository =
-                                    container.preferenciasRepository
-                            )
+                            factory =
+                                ActividadesViewModelFactory(
+                                    repository =
+                                        container
+                                            .actividadRepository,
+
+                                    preferenciasRepository =
+                                        container
+                                            .preferenciasRepository
+                                )
                         )
 
                     // =====================================================
-                    // VIEWMODEL DE EVIDENCIAS - SEMANA 9
+                    // VIEWMODEL DE EVIDENCIAS
                     // =====================================================
 
                     val evidenciaViewModel: EvidenciaViewModel =
                         viewModel(
-                            factory = EvidenciaViewModelFactory(
-                                repository =
-                                    container.evidenciaRepository
-                            )
+                            factory =
+                                EvidenciaViewModelFactory(
+                                    repository =
+                                        container
+                                            .evidenciaRepository
+                                )
                         )
 
                     // =====================================================
@@ -83,57 +104,177 @@ class MainActivity : ComponentActivity() {
                     // =====================================================
 
                     val uiState by
-                    viewModel.uiState.collectAsState()
+                    viewModel
+                        .uiState
+                        .collectAsState()
 
                     val operacionUiState by
-                    viewModel.operacionUiState.collectAsState()
+                    viewModel
+                        .operacionUiState
+                        .collectAsState()
 
                     val textoBusqueda by
-                    viewModel.textoBusqueda.collectAsState()
+                    viewModel
+                        .textoBusqueda
+                        .collectAsState()
 
                     val preferencias by
-                    viewModel.preferencias.collectAsState()
+                    viewModel
+                        .preferencias
+                        .collectAsState()
 
                     val actualizacionUiState by
-                    viewModel.actualizacionUiState.collectAsState()
+                    viewModel
+                        .actualizacionUiState
+                        .collectAsState()
 
                     // =====================================================
                     // ESTADOS DE EVIDENCIAS
                     // =====================================================
 
                     val evidenciaUiState by
-                    evidenciaViewModel.uiState.collectAsState()
+                    evidenciaViewModel
+                        .uiState
+                        .collectAsState()
 
                     val operacionEvidenciaUiState by
-                    evidenciaViewModel.operacionUiState.collectAsState()
+                    evidenciaViewModel
+                        .operacionUiState
+                        .collectAsState()
+
+                    // =====================================================
+                    // PERMISO DE NOTIFICACIONES - SEMANA 9
+                    // =====================================================
+
+                    val permisoNotificacionesLauncher =
+                        rememberLauncherForActivityResult(
+                            contract =
+                                ActivityResultContracts
+                                    .RequestPermission()
+                        ) { concedido ->
+
+                            viewModel
+                                .guardarRecordatoriosActivos(
+                                    concedido
+                                )
+                        }
+
+                    val permisoNotificacionesConcedido =
+                        Build.VERSION.SDK_INT <
+                                Build.VERSION_CODES.TIRAMISU ||
+                                ContextCompat.checkSelfPermission(
+                                    this@MainActivity,
+                                    Manifest.permission.POST_NOTIFICATIONS
+                                ) ==
+                                PackageManager.PERMISSION_GRANTED
+
+                    fun cambiarRecordatorios(
+                        activar: Boolean
+                    ) {
+
+                        // Desactivar nunca necesita permiso.
+                        if (!activar) {
+
+                            viewModel
+                                .guardarRecordatoriosActivos(
+                                    false
+                                )
+
+                            return
+                        }
+
+                        // Android 12 o anterior no necesita
+                        // POST_NOTIFICATIONS.
+                        if (
+                            Build.VERSION.SDK_INT <
+                            Build.VERSION_CODES.TIRAMISU
+                        ) {
+
+                            viewModel
+                                .guardarRecordatoriosActivos(
+                                    true
+                                )
+
+                            return
+                        }
+
+                        // Si ya está concedido, activamos.
+                        if (
+                            permisoNotificacionesConcedido
+                        ) {
+
+                            viewModel
+                                .guardarRecordatoriosActivos(
+                                    true
+                                )
+
+                            return
+                        }
+
+                        // Si ya se solicitó antes y fue negado,
+                        // no repetimos el diálogo.
+                        if (
+                            preferencias
+                                .permisoNotificacionesSolicitado
+                        ) {
+
+                            viewModel
+                                .guardarRecordatoriosActivos(
+                                    false
+                                )
+
+                            return
+                        }
+
+                        // Guardamos que ya lo solicitamos.
+                        viewModel
+                            .marcarPermisoNotificacionesSolicitado()
+
+                        permisoNotificacionesLauncher
+                            .launch(
+                                Manifest.permission.POST_NOTIFICATIONS
+                            )
+                    }
 
                     // =====================================================
                     // NAVEGACIÓN
                     // =====================================================
 
                     NavHost(
-                        navController = navController,
-                        startDestination = "lista"
+                        navController =
+                            navController,
+
+                        startDestination =
+                            "lista"
                     ) {
 
                         // =================================================
                         // LISTA
                         // =================================================
 
-                        composable("lista") {
+                        composable(
+                            "lista"
+                        ) {
 
                             PantallaActividadesSemana7(
-                                uiState = uiState,
-                                operacionUiState = operacionUiState,
+                                uiState =
+                                    uiState,
+
+                                operacionUiState =
+                                    operacionUiState,
+
                                 actualizacionUiState =
                                     actualizacionUiState,
 
-                                textoBusqueda = textoBusqueda,
+                                textoBusqueda =
+                                    textoBusqueda,
 
-                                orden = preferencias.orden,
+                                orden =
+                                    preferencias.orden,
 
                                 modoVisualizacion =
-                                    preferencias.modoVisualizacion,
+                                    preferencias
+                                        .modoVisualizacion,
 
                                 onBusquedaChange =
                                     viewModel::cambiarBusqueda,
@@ -142,9 +283,11 @@ class MainActivity : ComponentActivity() {
                                     viewModel::guardarOrden,
 
                                 onModoChange =
-                                    viewModel::guardarModoVisualizacion,
+                                    viewModel::
+                                    guardarModoVisualizacion,
 
-                                onActividadClick = { actividad ->
+                                onActividadClick = {
+                                        actividad ->
 
                                     navController.navigate(
                                         "detalle/${actividad.id}"
@@ -170,28 +313,36 @@ class MainActivity : ComponentActivity() {
                         // CREAR ACTIVIDAD
                         // =================================================
 
-                        composable("crear") {
+                        composable(
+                            "crear"
+                        ) {
 
-                            var formularioState by remember {
+                            var formularioState by
+                            remember {
+
                                 mutableStateOf(
                                     FormularioActividadUiState()
                                 )
                             }
 
                             FormularioActividad(
-                                uiState = formularioState,
+                                uiState =
+                                    formularioState,
 
-                                onTituloChange = { nuevoTitulo ->
+                                onTituloChange = {
+                                        nuevoTitulo ->
 
                                     formularioState =
                                         validarFormularioActividad(
                                             formularioState.copy(
-                                                titulo = nuevoTitulo
+                                                titulo =
+                                                    nuevoTitulo
                                             )
                                         )
                                 },
 
-                                onDescripcionChange = { nuevaDescripcion ->
+                                onDescripcionChange = {
+                                        nuevaDescripcion ->
 
                                     formularioState =
                                         validarFormularioActividad(
@@ -202,17 +353,20 @@ class MainActivity : ComponentActivity() {
                                         )
                                 },
 
-                                onFechaChange = { nuevaFecha ->
+                                onFechaChange = {
+                                        nuevaFecha ->
 
                                     formularioState =
                                         validarFormularioActividad(
                                             formularioState.copy(
-                                                fecha = nuevaFecha
+                                                fecha =
+                                                    nuevaFecha
                                             )
                                         )
                                 },
 
-                                onPrioridadChange = { nuevaPrioridad ->
+                                onPrioridadChange = {
+                                        nuevaPrioridad ->
 
                                     formularioState =
                                         validarFormularioActividad(
@@ -223,7 +377,8 @@ class MainActivity : ComponentActivity() {
                                         )
                                 },
 
-                                onProgresoChange = { nuevoProgreso ->
+                                onProgresoChange = {
+                                        nuevoProgreso ->
 
                                     formularioState =
                                         validarFormularioActividad(
@@ -264,43 +419,76 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // =================================================
-                        // DETALLE DE ACTIVIDAD
+                        // DETALLE
                         // =================================================
 
                         composable(
-                            route = "detalle/{id}"
+                            route =
+                                "detalle/{id}"
                         ) { backStackEntry ->
 
                             val id =
-                                backStackEntry.arguments
-                                    ?.getString("id")
+                                backStackEntry
+                                    .arguments
+                                    ?.getString(
+                                        "id"
+                                    )
                                     ?.toLongOrNull()
 
                             val actividad =
-                                id?.let { actividadId ->
+                                id?.let {
+                                        actividadId ->
 
                                     viewModel.buscar(
                                         actividadId
                                     )
                                 }
 
-                            LaunchedEffect(id) {
+                            LaunchedEffect(
+                                id
+                            ) {
 
-                                if (id != null) {
+                                if (
+                                    id != null
+                                ) {
 
                                     evidenciaViewModel
-                                        .cargarActividad(id)
+                                        .cargarActividad(
+                                            id
+                                        )
                                 }
                             }
 
                             DetalleActividadScreen(
-                                actividad = actividad,
+                                actividad =
+                                    actividad,
 
                                 evidenciaUiState =
                                     evidenciaUiState,
 
                                 operacionEvidenciaUiState =
                                     operacionEvidenciaUiState,
+
+                                // =========================================
+                                // RECORDATORIOS
+                                // =========================================
+
+                                recordatoriosActivos =
+                                    preferencias
+                                        .recordatoriosActivos &&
+                                            permisoNotificacionesConcedido,
+
+                                onRecordatoriosChange = {
+                                        activar ->
+
+                                    cambiarRecordatorios(
+                                        activar
+                                    )
+                                },
+
+                                // =========================================
+                                // GUARDAR EVIDENCIA
+                                // =========================================
 
                                 onEvidenciaSeleccionada = {
                                         actividadId,
@@ -332,11 +520,41 @@ class MainActivity : ComponentActivity() {
                                         )
                                 },
 
+                                // =========================================
+                                // ELIMINAR EVIDENCIA
+                                // =========================================
+
                                 onEliminarEvidencia = {
                                         actividadId ->
 
                                     evidenciaViewModel
                                         .eliminar(
+                                            actividadId
+                                        )
+                                },
+
+                                // =========================================
+                                // SINCRONIZAR
+                                // =========================================
+
+                                onSincronizarEvidencia = {
+                                        actividadId ->
+
+                                    evidenciaViewModel
+                                        .sincronizar(
+                                            actividadId
+                                        )
+                                },
+
+                                // =========================================
+                                // REINTENTAR
+                                // =========================================
+
+                                onReintentarSincronizacion = {
+                                        actividadId ->
+
+                                    evidenciaViewModel
+                                        .reintentarSincronizacion(
                                             actividadId
                                         )
                                 },

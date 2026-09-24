@@ -8,8 +8,8 @@ import android.webkit.MimeTypeMap
 import android.widget.ImageView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.activity.result.contract.ActivityResultContracts.TakePicture
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
+import com.sofia.miformacionctma.data.EstadoEvidencia
 import com.sofia.miformacionctma.domain.ActividadFormativa
 import com.sofia.miformacionctma.domain.estadoActividad
 import java.io.File
@@ -50,6 +51,10 @@ fun DetalleActividadScreen(
     operacionEvidenciaUiState: OperacionEvidenciaUiState =
         OperacionEvidenciaUiState.Inactiva,
 
+    recordatoriosActivos: Boolean = false,
+
+    onRecordatoriosChange: (Boolean) -> Unit = {},
+
     onEvidenciaSeleccionada: (
         actividadId: Long,
         uri: String,
@@ -59,46 +64,64 @@ fun DetalleActividadScreen(
         archivoPropio: Boolean
     ) -> Unit = { _, _, _, _, _, _ -> },
 
-    onEliminarEvidencia: (Long) -> Unit = {}
+    onEliminarEvidencia: (Long) -> Unit = {},
+
+    onSincronizarEvidencia: (Long) -> Unit = {},
+
+    onReintentarSincronizacion: (Long) -> Unit = {}
 ) {
 
-    val context = LocalContext.current
+    val context =
+        LocalContext.current
 
-    // =========================================================
-    // FOTO PENDIENTE DE LA CÁMARA
-    // =========================================================
-
-    var fotoPendienteUri by remember {
+    var uriFotoPendiente by
+    remember {
         mutableStateOf<Uri?>(null)
     }
 
-    var fotoPendienteArchivo by remember {
+    var archivoFotoPendiente by
+    remember {
         mutableStateOf<File?>(null)
     }
 
-    // =========================================================
-    // SELECTOR DE GALERÍA - PHOTO PICKER
-    // =========================================================
+    var mensajeDispositivo by
+    remember {
+        mutableStateOf<String?>(null)
+    }
+
+    // ============================================================
+    // PHOTO PICKER
+    // ============================================================
 
     val selectorImagen =
         rememberLauncherForActivityResult(
             contract = PickVisualMedia()
         ) { uri ->
 
-            // Si uri == null, el usuario canceló.
-            // No se modifica la evidencia existente.
-            if (uri != null && actividad != null) {
+            if (
+                uri == null
+            ) {
+
+                mensajeDispositivo =
+                    "Selección cancelada. La evidencia anterior se conserva."
+
+            } else if (
+                actividad != null
+            ) {
+
+                mensajeDispositivo =
+                    null
 
                 val resolver =
                     context.contentResolver
 
-                // Conservamos acceso a la URI para poder
-                // recuperarla después de reiniciar la app.
                 runCatching {
-                    resolver.takePersistableUriPermission(
-                        uri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
+
+                    resolver
+                        .takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
                 }
 
                 val mimeType =
@@ -113,8 +136,10 @@ fun DetalleActividadScreen(
 
                 val nombreArchivo =
                     generarNombreEvidencia(
-                        actividadId = actividad.id,
-                        mimeType = mimeType
+                        actividadId =
+                            actividad.id,
+                        mimeType =
+                            mimeType
                     )
 
                 onEvidenciaSeleccionada(
@@ -128,28 +153,30 @@ fun DetalleActividadScreen(
             }
         }
 
-    // =========================================================
-    // CÁMARA - TAKE PICTURE + FILEPROVIDER
-    // =========================================================
+    // ============================================================
+    // CÁMARA
+    // ============================================================
 
     val camara =
         rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.TakePicture()
-        ) { fotoTomada ->
+            contract = TakePicture()
+        ) { exito ->
 
             val uri =
-                fotoPendienteUri
+                uriFotoPendiente
 
             val archivo =
-                fotoPendienteArchivo
+                archivoFotoPendiente
 
             if (
-                fotoTomada &&
-                actividad != null &&
+                exito &&
                 uri != null &&
                 archivo != null &&
-                archivo.exists()
+                actividad != null
             ) {
+
+                mensajeDispositivo =
+                    null
 
                 onEvidenciaSeleccionada(
                     actividad.id,
@@ -162,66 +189,121 @@ fun DetalleActividadScreen(
 
             } else {
 
-                // Si el usuario canceló la cámara,
-                // eliminamos el archivo vacío que habíamos preparado.
-                archivo?.delete()
+                if (
+                    !exito
+                ) {
+
+                    mensajeDispositivo =
+                        "Captura cancelada. La evidencia anterior se conserva."
+
+                } else {
+
+                    mensajeDispositivo =
+                        "No fue posible procesar la foto. La evidencia anterior se conserva."
+                }
+
+                // Eliminamos únicamente el archivo
+                // temporal nuevo creado para la cámara.
+                archivo?.let {
+
+                    runCatching {
+                        it.delete()
+                    }
+                }
             }
 
-            fotoPendienteUri = null
-            fotoPendienteArchivo = null
-        }
+            uriFotoPendiente =
+                null
 
-    // =========================================================
-    // FUNCIÓN LOCAL PARA ABRIR LA CÁMARA
-    // =========================================================
+            archivoFotoPendiente =
+                null
+        }
 
     fun tomarFoto() {
 
-        if (actividad == null) {
+        if (
+            actividad == null
+        ) {
             return
         }
 
-        val resultado =
+        mensajeDispositivo =
+            null
+
+        val archivo =
             crearArchivoParaCamara(
                 context = context,
-                actividadId = actividad.id
+                actividadId =
+                    actividad.id
             )
 
-        if (resultado != null) {
+        val uri =
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                archivo
+            )
 
-            fotoPendienteArchivo =
-                resultado.first
+        archivoFotoPendiente =
+            archivo
 
-            fotoPendienteUri =
-                resultado.second
+        uriFotoPendiente =
+            uri
+
+        runCatching {
 
             camara.launch(
-                resultado.second
+                uri
             )
+
+        }.onFailure {
+
+            runCatching {
+                archivo.delete()
+            }
+
+            archivoFotoPendiente =
+                null
+
+            uriFotoPendiente =
+                null
+
+            mensajeDispositivo =
+                "No fue posible abrir la cámara. La evidencia anterior se conserva."
         }
     }
 
-    // =========================================================
+    // ============================================================
     // CONTENIDO
-    // =========================================================
+    // ============================================================
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(
-                rememberScrollState()
-            )
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(
+                    rememberScrollState()
+                )
+                .padding(24.dp),
+
         verticalArrangement =
-            Arrangement.spacedBy(12.dp)
+            Arrangement.spacedBy(
+                12.dp
+            )
     ) {
 
-        if (actividad == null) {
+        if (
+            actividad == null
+        ) {
 
             Text(
-                text = "Actividad no encontrada",
+                text =
+                    "Actividad no encontrada",
+
                 style =
-                    MaterialTheme.typography.headlineSmall
+                    MaterialTheme
+                        .typography
+                        .headlineSmall
             )
 
             Text(
@@ -231,10 +313,18 @@ fun DetalleActividadScreen(
 
         } else {
 
+            // ====================================================
+            // DATOS DE LA ACTIVIDAD
+            // ====================================================
+
             Text(
-                text = actividad.titulo,
+                text =
+                    actividad.titulo,
+
                 style =
-                    MaterialTheme.typography.headlineSmall
+                    MaterialTheme
+                        .typography
+                        .headlineSmall
             )
 
             actividad.descripcion
@@ -244,7 +334,8 @@ fun DetalleActividadScreen(
                 ?.let { descripcion ->
 
                     Text(
-                        text = descripcion
+                        text =
+                            descripcion
                     )
                 }
 
@@ -276,20 +367,96 @@ fun DetalleActividadScreen(
                     "Prioridad: ${actividad.prioridad.name}"
             )
 
+            // ====================================================
+            // RECORDATORIOS - SEMANA 9
+            // ====================================================
+
             Spacer(
                 modifier =
-                    Modifier.height(8.dp)
+                    Modifier.height(
+                        8.dp
+                    )
             )
-
-            // =====================================================
-            // EVIDENCIA - SEMANA 9
-            // =====================================================
 
             Text(
-                text = "Evidencia",
-                style =
-                    MaterialTheme.typography.titleLarge
+                text =
+                    if (
+                        recordatoriosActivos
+                    ) {
+
+                        "Recordatorios: activados"
+
+                    } else {
+
+                        "Recordatorios: desactivados"
+                    }
             )
+
+            OutlinedButton(
+                modifier =
+                    Modifier.fillMaxWidth(),
+
+                onClick = {
+
+                    onRecordatoriosChange(
+                        !recordatoriosActivos
+                    )
+                }
+            ) {
+
+                Text(
+                    text =
+                        if (
+                            recordatoriosActivos
+                        ) {
+
+                            "Desactivar recordatorios"
+
+                        } else {
+
+                            "Activar recordatorios"
+                        }
+                )
+            }
+
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        8.dp
+                    )
+            )
+
+            // ====================================================
+            // EVIDENCIA - SEMANA 9
+            // ====================================================
+
+            Text(
+                text =
+                    "Evidencia",
+
+                style =
+                    MaterialTheme
+                        .typography
+                        .titleLarge
+            )
+
+            Text(
+                text =
+                    "La imagen se utilizará como evidencia de esta actividad. Puedes revisarla, reemplazarla o eliminarla antes de sincronizar."
+            )
+
+            mensajeDispositivo?.let { mensaje ->
+
+                Text(
+                    text =
+                        mensaje,
+
+                    style =
+                        MaterialTheme
+                            .typography
+                            .bodyMedium
+                )
+            }
 
             when (
                 val estado =
@@ -338,23 +505,33 @@ fun DetalleActividadScreen(
                             }"
                     )
 
-                    AndroidView(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp),
+                    // ============================================
+                    // VISTA PREVIA
+                    // ============================================
 
-                        factory = { androidContext ->
+                    AndroidView(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(
+                                    220.dp
+                                ),
+
+                        factory = {
+                                androidContext ->
 
                             ImageView(
                                 androidContext
                             ).apply {
 
                                 scaleType =
-                                    ImageView.ScaleType.CENTER_CROP
+                                    ImageView.ScaleType
+                                        .CENTER_CROP
                             }
                         },
 
-                        update = { imageView ->
+                        update = {
+                                imageView ->
 
                             imageView.setImageURI(
                                 Uri.parse(
@@ -364,19 +541,115 @@ fun DetalleActividadScreen(
                         }
                     )
 
-                    // ---------------------------------------------
+                    // ============================================
+                    // ESTADO DE SINCRONIZACIÓN
+                    // ============================================
+
+                    when (
+                        evidencia.estado
+                    ) {
+
+                        EstadoEvidencia.LOCAL -> {
+
+                            Button(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth(),
+
+                                onClick = {
+
+                                    onSincronizarEvidencia(
+                                        actividad.id
+                                    )
+                                }
+                            ) {
+
+                                Text(
+                                    text =
+                                        "Sincronizar evidencia"
+                                )
+                            }
+                        }
+
+                        EstadoEvidencia.SUBIENDO -> {
+
+                            Button(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth(),
+
+                                enabled =
+                                    false,
+
+                                onClick = {}
+                            ) {
+
+                                Text(
+                                    text =
+                                        "Sincronizando..."
+                                )
+                            }
+                        }
+
+                        EstadoEvidencia.SINCRONIZADA -> {
+
+                            Text(
+                                text =
+                                    "Evidencia sincronizada correctamente."
+                            )
+                        }
+
+                        EstadoEvidencia.FALLIDA -> {
+
+                            Text(
+                                text =
+                                    "La sincronización falló. La evidencia local se conserva.",
+
+                                color =
+                                    MaterialTheme
+                                        .colorScheme
+                                        .error
+                            )
+
+                            Button(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth(),
+
+                                onClick = {
+
+                                    onReintentarSincronizacion(
+                                        actividad.id
+                                    )
+                                }
+                            ) {
+
+                                Text(
+                                    text =
+                                        "Reintentar sincronización"
+                                )
+                            }
+                        }
+                    }
+
+                    // ============================================
                     // REEMPLAZAR DESDE GALERÍA
-                    // ---------------------------------------------
+                    // ============================================
 
                     OutlinedButton(
                         modifier =
-                            Modifier.fillMaxWidth(),
+                            Modifier
+                                .fillMaxWidth(),
 
                         onClick = {
 
+                            mensajeDispositivo =
+                                null
+
                             selectorImagen.launch(
                                 PickVisualMediaRequest(
-                                    PickVisualMedia.ImageOnly
+                                    PickVisualMedia
+                                        .ImageOnly
                                 )
                             )
                         }
@@ -384,17 +657,18 @@ fun DetalleActividadScreen(
 
                         Text(
                             text =
-                                "Reemplazar desde galería"
+                                "Reemplazar imagen"
                         )
                     }
 
-                    // ---------------------------------------------
-                    // REEMPLAZAR USANDO CÁMARA
-                    // ---------------------------------------------
+                    // ============================================
+                    // REEMPLAZAR CON CÁMARA
+                    // ============================================
 
                     OutlinedButton(
                         modifier =
-                            Modifier.fillMaxWidth(),
+                            Modifier
+                                .fillMaxWidth(),
 
                         onClick = {
                             tomarFoto()
@@ -407,15 +681,19 @@ fun DetalleActividadScreen(
                         )
                     }
 
-                    // ---------------------------------------------
-                    // ELIMINAR
-                    // ---------------------------------------------
+                    // ============================================
+                    // ELIMINAR EVIDENCIA
+                    // ============================================
 
                     OutlinedButton(
                         modifier =
-                            Modifier.fillMaxWidth(),
+                            Modifier
+                                .fillMaxWidth(),
 
                         onClick = {
+
+                            mensajeDispositivo =
+                                null
 
                             onEliminarEvidencia(
                                 actividad.id
@@ -433,16 +711,20 @@ fun DetalleActividadScreen(
                 is EvidenciaUiState.Error -> {
 
                     Text(
-                        text = estado.mensaje,
+                        text =
+                            estado.mensaje,
+
                         color =
-                            MaterialTheme.colorScheme.error
+                            MaterialTheme
+                                .colorScheme
+                                .error
                     )
                 }
             }
 
-            // =====================================================
-            // SI NO HAY EVIDENCIA
-            // =====================================================
+            // ====================================================
+            // SIN EVIDENCIA: SELECCIONAR O TOMAR FOTO
+            // ====================================================
 
             if (
                 evidenciaUiState
@@ -455,9 +737,13 @@ fun DetalleActividadScreen(
 
                     onClick = {
 
+                        mensajeDispositivo =
+                            null
+
                         selectorImagen.launch(
                             PickVisualMediaRequest(
-                                PickVisualMedia.ImageOnly
+                                PickVisualMedia
+                                    .ImageOnly
                             )
                         )
                     }
@@ -485,9 +771,9 @@ fun DetalleActividadScreen(
                 }
             }
 
-            // =====================================================
-            // RESULTADO DE LA OPERACIÓN
-            // =====================================================
+            // ====================================================
+            // RESULTADO DE OPERACIONES
+            // ====================================================
 
             when (
                 val operacion =
@@ -495,7 +781,8 @@ fun DetalleActividadScreen(
             ) {
 
                 OperacionEvidenciaUiState.Inactiva -> {
-                    // No se muestra mensaje.
+
+                    // No mostramos mensaje.
                 }
 
                 OperacionEvidenciaUiState.EnCurso -> {
@@ -519,16 +806,25 @@ fun DetalleActividadScreen(
                     Text(
                         text =
                             operacion.mensaje,
+
                         color =
-                            MaterialTheme.colorScheme.error
+                            MaterialTheme
+                                .colorScheme
+                                .error
                     )
                 }
             }
 
             Spacer(
                 modifier =
-                    Modifier.height(8.dp)
+                    Modifier.height(
+                        8.dp
+                    )
             )
+
+            // ====================================================
+            // ELIMINAR ACTIVIDAD
+            // ====================================================
 
             Button(
                 modifier =
@@ -549,79 +845,57 @@ fun DetalleActividadScreen(
             }
         }
 
+        // ========================================================
+        // VOLVER
+        // ========================================================
+
         OutlinedButton(
             modifier =
                 Modifier.fillMaxWidth(),
 
-            onClick = onBack
+            onClick =
+                onBack
         ) {
 
             Text(
-                text = "Volver"
+                text =
+                    "Volver"
             )
         }
     }
 }
 
-// =============================================================
-// CREAR ARCHIVO SEGURO PARA LA CÁMARA
-// =============================================================
+// ================================================================
+// ARCHIVO PARA CÁMARA
+// ================================================================
 
 private fun crearArchivoParaCamara(
     context: Context,
     actividadId: Long
-): Pair<File, Uri>? {
+): File {
 
-    return try {
-
-        val directorio =
-            File(
-                context.filesDir,
-                "evidencias"
-            )
-
-        if (!directorio.exists()) {
-            directorio.mkdirs()
-        }
-
-        val nombreArchivo =
-            "evidencia_" +
-                    actividadId +
-                    "_" +
-                    System.currentTimeMillis() +
-                    ".jpg"
-
-        val archivo =
-            File(
-                directorio,
-                nombreArchivo
-            )
-
-        if (!archivo.exists()) {
-            archivo.createNewFile()
-        }
-
-        val uri =
-            FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                archivo
-            )
-
-        Pair(
-            archivo,
-            uri
+    val directorio =
+        File(
+            context.filesDir,
+            "evidencias"
         )
 
-    } catch (_: Exception) {
+    if (
+        !directorio.exists()
+    ) {
 
-        null
+        directorio.mkdirs()
     }
+
+    return File(
+        directorio,
+        "evidencia_${actividadId}_${System.currentTimeMillis()}.jpg"
+    )
 }
 
-// =============================================================
-// OBTENER TAMAÑO DE URI DEL PHOTO PICKER
-// =============================================================
+// ================================================================
+// TAMAÑO DE URI
+// ================================================================
 
 private fun obtenerTamanoUri(
     uri: Uri,
@@ -635,15 +909,20 @@ private fun obtenerTamanoUri(
 
         resolver.query(
             uri,
+
             arrayOf(
                 OpenableColumns.SIZE
             ),
+
             null,
             null,
             null
         )?.use { cursor ->
 
-            if (!cursor.moveToFirst()) {
+            if (
+                !cursor.moveToFirst()
+            ) {
+
                 return@use -1L
             }
 
@@ -652,9 +931,14 @@ private fun obtenerTamanoUri(
                     OpenableColumns.SIZE
                 )
 
-            if (indice < 0) {
+            if (
+                indice < 0
+            ) {
+
                 -1L
+
             } else {
+
                 cursor.getLong(
                     indice
                 )
@@ -662,15 +946,17 @@ private fun obtenerTamanoUri(
 
         } ?: -1L
 
-    } catch (_: Exception) {
+    } catch (
+        _: Exception
+    ) {
 
         -1L
     }
 }
 
-// =============================================================
-// GENERAR NOMBRE PARA IMAGEN DE GALERÍA
-// =============================================================
+// ================================================================
+// NOMBRE GENERADO PARA EVIDENCIA
+// ================================================================
 
 private fun generarNombreEvidencia(
     actividadId: Long,
@@ -685,30 +971,62 @@ private fun generarNombreEvidencia(
             )
             ?: "img"
 
-    return "evidencia_" +
-            actividadId +
-            "_" +
-            System.currentTimeMillis() +
-            "." +
+    return buildString {
+
+        append(
+            "evidencia_"
+        )
+
+        append(
+            actividadId
+        )
+
+        append(
+            "_"
+        )
+
+        append(
+            System.currentTimeMillis()
+        )
+
+        append(
+            "."
+        )
+
+        append(
             extension
+        )
+    }
 }
 
-// =============================================================
+// ================================================================
 // FORMATEAR TAMAÑO
-// =============================================================
+// ================================================================
 
 private fun formatearTamano(
     bytes: Long
 ): String {
 
-    if (bytes < 1024L) {
-        return "$bytes bytes"
+    if (
+        bytes < 0L
+    ) {
+
+        return "Tamaño desconocido"
+    }
+
+    if (
+        bytes < 1024L
+    ) {
+
+        return "$bytes B"
     }
 
     val kb =
         bytes / 1024.0
 
-    if (kb < 1024.0) {
+    if (
+        kb < 1024.0
+    ) {
 
         return String.format(
             "%.1f KB",

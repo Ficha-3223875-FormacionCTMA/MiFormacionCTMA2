@@ -46,10 +46,26 @@ sealed interface RegistroEvidenciaResultado {
 }
 
 /**
+ * Resultado del intento de sincronización.
+ *
+ * Un fallo no elimina la evidencia local.
+ */
+sealed interface SincronizacionEvidenciaResultado {
+
+    data class Exitosa(
+        val evidencia: Evidencia
+    ) : SincronizacionEvidenciaResultado
+
+    data class Fallida(
+        val mensaje: String
+    ) : SincronizacionEvidenciaResultado
+}
+
+/**
  * Contrato del repositorio de evidencias.
  *
- * La interfaz de usuario no manipula directamente Room
- * ni conoce rutas físicas de archivos.
+ * La interfaz de usuario no manipula directamente Room,
+ * Retrofit ni rutas físicas de archivos.
  */
 interface EvidenciaRepository {
 
@@ -68,11 +84,8 @@ interface EvidenciaRepository {
     ): Evidencia?
 
     /**
-     * Registra una evidencia que ya fue seleccionada
+     * Registra una evidencia seleccionada
      * o capturada en el dispositivo.
-     *
-     * La implementación deberá validar MIME, tamaño
-     * y disponibilidad de la URI antes de guardarla.
      */
     suspend fun registrarLocal(
         actividadId: Long,
@@ -82,6 +95,21 @@ interface EvidenciaRepository {
         nombreArchivo: String,
         archivoPropio: Boolean
     ): RegistroEvidenciaResultado
+
+    /**
+     * Intenta enviar la evidencia asociada a la actividad.
+     *
+     * Flujo esperado:
+     * LOCAL/FALLIDA -> SUBIENDO -> SINCRONIZADA
+     *
+     * Si ocurre un error:
+     * SUBIENDO -> FALLIDA
+     *
+     * La URI y los metadatos locales se conservan.
+     */
+    suspend fun sincronizar(
+        actividadId: Long
+    ): SincronizacionEvidenciaResultado
 
     /**
      * Cambia el estado local de sincronización.

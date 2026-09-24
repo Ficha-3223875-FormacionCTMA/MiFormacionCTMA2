@@ -10,10 +10,13 @@ import com.sofia.miformacionctma.data.RoomReporteRepository
 import com.sofia.miformacionctma.data.local.DatabaseProvider
 import com.sofia.miformacionctma.data.preferences.PreferenciasRepository
 import com.sofia.miformacionctma.data.preferences.PreferenciasSource
+import com.sofia.miformacionctma.data.remote.EvidenciaRemoteDataSourceNoConfigurado
 import com.sofia.miformacionctma.data.remote.RemoteActividadDataSource
 import com.sofia.miformacionctma.data.remote.RetrofitProvider
 
-class AppContainer(context: Context) {
+class AppContainer(
+    context: Context
+) {
 
     private val database =
         DatabaseProvider.get(context)
@@ -25,29 +28,36 @@ class AppContainer(context: Context) {
 
     val reporteRepository =
         RoomReporteRepository(
-            reporteDao = database.reporteDao(),
-            categoriaRepository = categoriaRepository
+            reporteDao =
+                database.reporteDao(),
+            categoriaRepository =
+                categoriaRepository
         )
 
-    // Semana 8 - API remota
     private val remoteActividadDataSource =
         RemoteActividadDataSource(
             RetrofitProvider.actividadApi
         )
 
-    // Semana 8 - Room + API
     val actividadRepository: ActividadRepository =
         ActividadRepositoryImpl(
-            dao = database.actividadDao(),
-            remote = remoteActividadDataSource
+            dao =
+                database.actividadDao(),
+            remote =
+                remoteActividadDataSource
         )
 
-    // Semana 9 - Evidencias
+    private val evidenciaRemoteDataSource =
+        EvidenciaRemoteDataSourceNoConfigurado()
+
     val evidenciaRepository: EvidenciaRepository =
         EvidenciaRepositoryImpl(
-            dao = database.evidenciaDao(),
+            dao =
+                database.evidenciaDao(),
             contentResolver =
-                context.applicationContext.contentResolver
+                context.applicationContext.contentResolver,
+            remote =
+                evidenciaRemoteDataSource
         )
 
     val preferenciasRepository: PreferenciasSource =

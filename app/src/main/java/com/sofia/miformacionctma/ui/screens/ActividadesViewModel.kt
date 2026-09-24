@@ -38,21 +38,27 @@ class ActividadesViewModel(
     // BÚSQUEDA Y REFRESCO
     // ============================================================
 
-    private val consulta = MutableStateFlow("")
-    private val refrescar = MutableStateFlow(0)
+    private val consulta =
+        MutableStateFlow("")
 
-    val textoBusqueda: StateFlow<String> = consulta.asStateFlow()
+    private val refrescar =
+        MutableStateFlow(0)
+
+    val textoBusqueda: StateFlow<String> =
+        consulta.asStateFlow()
 
     // ============================================================
     // PREFERENCIAS
     // ============================================================
 
-    val preferencias = preferenciasRepository.preferencias
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            com.sofia.miformacionctma.data.preferences.PreferenciasUi()
-        )
+    val preferencias =
+        preferenciasRepository
+            .preferencias
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                com.sofia.miformacionctma.data.preferences.PreferenciasUi()
+            )
 
     // ============================================================
     // ESTADO DE ACTUALIZACIÓN WEB - SEMANA 8
@@ -63,27 +69,37 @@ class ActividadesViewModel(
             ActualizacionResultado.NoDisponible
         )
 
-    val actualizacionUiState: StateFlow<ActualizacionResultado> =
+    val actualizacionUiState:
+            StateFlow<ActualizacionResultado> =
         _actualizacionUiState.asStateFlow()
 
     // ============================================================
     // ACTIVIDADES DESDE ROOM
     // ============================================================
 
-    private val actividadesFiltradas = combine(
-        consulta
-            .debounce(250)
-            .distinctUntilChanged(),
-        refrescar
-    ) { texto, _ ->
-        texto
-    }.flatMapLatest { texto ->
-        if (texto.isBlank()) {
-            repository.observarTodas()
-        } else {
-            repository.buscarPorTexto(texto.trim())
+    private val actividadesFiltradas =
+        combine(
+            consulta
+                .debounce(250)
+                .distinctUntilChanged(),
+            refrescar
+        ) { texto, _ ->
+
+            texto
+
+        }.flatMapLatest { texto ->
+
+            if (texto.isBlank()) {
+
+                repository.observarTodas()
+
+            } else {
+
+                repository.buscarPorTexto(
+                    texto.trim()
+                )
+            }
         }
-    }
 
     val uiState: StateFlow<ListadoUiState> =
         combine(
@@ -91,38 +107,56 @@ class ActividadesViewModel(
             preferencias
         ) { actividades, prefs ->
 
-            val ordenadas = when (prefs.orden) {
+            val ordenadas =
+                when (prefs.orden) {
 
-                "TITULO_DESC" ->
-                    actividades.sortedByDescending {
-                        it.titulo.lowercase()
-                    }
+                    "TITULO_DESC" ->
 
-                "PROGRESO_ASC" ->
-                    actividades.sortedBy {
-                        it.progreso
-                    }
+                        actividades
+                            .sortedByDescending {
+                                it.titulo.lowercase()
+                            }
 
-                "PROGRESO_DESC" ->
-                    actividades.sortedByDescending {
-                        it.progreso
-                    }
+                    "PROGRESO_ASC" ->
 
-                else ->
-                    actividades.sortedBy {
-                        it.titulo.lowercase()
-                    }
-            }
+                        actividades
+                            .sortedBy {
+                                it.progreso
+                            }
+
+                    "PROGRESO_DESC" ->
+
+                        actividades
+                            .sortedByDescending {
+                                it.progreso
+                            }
+
+                    else ->
+
+                        actividades
+                            .sortedBy {
+                                it.titulo.lowercase()
+                            }
+                }
 
             if (ordenadas.isEmpty()) {
+
                 ListadoUiState.Vacio
+
             } else {
-                ListadoUiState.Contenido(ordenadas)
+
+                ListadoUiState.Contenido(
+                    ordenadas
+                )
             }
 
         }.catch { throwable ->
 
-            if (throwable is CancellationException) {
+            if (
+                throwable
+                        is CancellationException
+            ) {
+
                 throw throwable
             }
 
@@ -148,32 +182,80 @@ class ActividadesViewModel(
             OperacionUiState.Inactiva
         )
 
-    val operacionUiState: StateFlow<OperacionUiState> =
+    val operacionUiState:
+            StateFlow<OperacionUiState> =
         _operacionUiState.asStateFlow()
 
-    private var operacionJob: Job? = null
+    private var operacionJob:
+            Job? = null
 
     // ============================================================
     // BÚSQUEDA
     // ============================================================
 
-    fun cambiarBusqueda(texto: String) {
-        consulta.value = texto
+    fun cambiarBusqueda(
+        texto: String
+    ) {
+
+        consulta.value =
+            texto
     }
 
     // ============================================================
     // PREFERENCIAS
     // ============================================================
 
-    fun guardarOrden(orden: String) {
+    fun guardarOrden(
+        orden: String
+    ) {
+
         viewModelScope.launch {
-            preferenciasRepository.guardarOrden(orden)
+
+            preferenciasRepository
+                .guardarOrden(
+                    orden
+                )
         }
     }
 
-    fun guardarModoVisualizacion(modo: String) {
+    fun guardarModoVisualizacion(
+        modo: String
+    ) {
+
         viewModelScope.launch {
-            preferenciasRepository.guardarModoVisualizacion(modo)
+
+            preferenciasRepository
+                .guardarModoVisualizacion(
+                    modo
+                )
+        }
+    }
+
+    // ============================================================
+    // RECORDATORIOS - SEMANA 9
+    // ============================================================
+
+    fun guardarRecordatoriosActivos(
+        activos: Boolean
+    ) {
+
+        viewModelScope.launch {
+
+            preferenciasRepository
+                .guardarRecordatoriosActivos(
+                    activos
+                )
+        }
+    }
+
+    fun marcarPermisoNotificacionesSolicitado() {
+
+        viewModelScope.launch {
+
+            preferenciasRepository
+                .guardarPermisoNotificacionesSolicitado(
+                    true
+                )
         }
     }
 
@@ -181,30 +263,52 @@ class ActividadesViewModel(
     // AGREGAR ACTIVIDAD
     // ============================================================
 
-    fun agregar(s: FormularioActividadUiState) {
+    fun agregar(
+        s: FormularioActividadUiState
+    ) {
 
         val progreso =
-            s.progreso.toIntOrNull() ?: 0
+            s.progreso
+                .toIntOrNull()
+                ?: 0
 
         val diasRestantes =
-            calcularDiasRestantes(s.fecha)
+            calcularDiasRestantes(
+                s.fecha
+            )
 
         val nuevaActividad =
             ActividadFormativa(
                 id = 0L,
-                titulo = s.titulo.trim(),
+
+                titulo =
+                    s.titulo.trim(),
+
                 descripcion =
                     s.descripcion
                         .trim()
-                        .ifBlank { null },
-                progreso = progreso,
-                diasRestantes = diasRestantes,
-                prioridad = s.prioridad,
-                fecha = s.fecha
+                        .ifBlank {
+                            null
+                        },
+
+                progreso =
+                    progreso,
+
+                diasRestantes =
+                    diasRestantes,
+
+                prioridad =
+                    s.prioridad,
+
+                fecha =
+                    s.fecha
             )
 
         ejecutarOperacion {
-            repository.agregar(nuevaActividad)
+
+            repository.agregar(
+                nuevaActividad
+            )
         }
     }
 
@@ -212,9 +316,15 @@ class ActividadesViewModel(
     // ELIMINAR ACTIVIDAD
     // ============================================================
 
-    fun eliminar(id: Long) {
+    fun eliminar(
+        id: Long
+    ) {
+
         ejecutarOperacion {
-            repository.eliminar(id)
+
+            repository.eliminar(
+                id
+            )
         }
     }
 
@@ -222,9 +332,15 @@ class ActividadesViewModel(
     // ACTUALIZAR ACTIVIDAD
     // ============================================================
 
-    fun actualizar(actividad: ActividadFormativa) {
+    fun actualizar(
+        actividad: ActividadFormativa
+    ) {
+
         ejecutarOperacion {
-            repository.actualizar(actividad)
+
+            repository.actualizar(
+                actividad
+            )
         }
     }
 
@@ -232,16 +348,25 @@ class ActividadesViewModel(
     // BUSCAR ACTIVIDAD
     // ============================================================
 
-    fun buscar(id: Long): ActividadFormativa? {
+    fun buscar(
+        id: Long
+    ): ActividadFormativa? {
 
-        return when (val estado = uiState.value) {
+        return when (
+            val estado =
+                uiState.value
+        ) {
 
             is ListadoUiState.Contenido ->
-                estado.actividades.firstOrNull {
-                    it.id == id
-                }
 
-            else -> null
+                estado
+                    .actividades
+                    .firstOrNull {
+                        it.id == id
+                    }
+
+            else ->
+                null
         }
     }
 
@@ -264,20 +389,27 @@ class ActividadesViewModel(
             try {
 
                 val resultado =
-                    repository.refrescarDesdeServidor()
+                    repository
+                        .refrescarDesdeServidor()
 
                 _actualizacionUiState.value =
                     resultado
 
-            } catch (e: CancellationException) {
+            } catch (
+                e: CancellationException
+            ) {
 
                 throw e
 
-            } catch (e: Exception) {
+            } catch (
+                e: Exception
+            ) {
 
                 _actualizacionUiState.value =
                     ActualizacionResultado.Fallida(
-                        tipo = TipoErrorRemoto.DESCONOCIDO,
+                        tipo =
+                            TipoErrorRemoto.DESCONOCIDO,
+
                         mensaje =
                             e.message
                                 ?: "No fue posible actualizar los datos."
@@ -309,11 +441,15 @@ class ActividadesViewModel(
                     _operacionUiState.value =
                         OperacionUiState.Exitosa
 
-                } catch (e: CancellationException) {
+                } catch (
+                    e: CancellationException
+                ) {
 
                     throw e
 
-                } catch (e: Exception) {
+                } catch (
+                    e: Exception
+                ) {
 
                     _operacionUiState.value =
                         OperacionUiState.Fallida(
@@ -330,8 +466,12 @@ class ActividadesViewModel(
 // ================================================================
 
 class ActividadesViewModelFactory(
-    private val repository: ActividadRepository,
-    private val preferenciasRepository: PreferenciasSource
+    private val repository:
+    ActividadRepository,
+
+    private val preferenciasRepository:
+    PreferenciasSource
+
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -378,10 +518,13 @@ fun calcularDiasRestantes(
                 Locale.getDefault()
             )
 
-        formato.isLenient = false
+        formato.isLenient =
+            false
 
         val fechaActividad =
-            formato.parse(fecha)
+            formato.parse(
+                fecha
+            )
                 ?: return 0
 
         val hoy =
@@ -389,15 +532,28 @@ fun calcularDiasRestantes(
 
         val fechaHoy =
             formato.parse(
-                formato.format(hoy.time)
-            ) ?: return 0
+                formato.format(
+                    hoy.time
+                )
+            )
+                ?: return 0
 
         (
-                (fechaActividad.time - fechaHoy.time) /
-                        (1000 * 60 * 60 * 24)
+                (
+                        fechaActividad.time -
+                                fechaHoy.time
+                        ) /
+                        (
+                                1000 *
+                                        60 *
+                                        60 *
+                                        24
+                                )
                 ).toInt()
 
-    } catch (e: Exception) {
+    } catch (
+        e: Exception
+    ) {
 
         0
     }
@@ -529,38 +685,55 @@ fun validarFormularioActividad(
         s.titulo.trim()
 
     val errorTitulo =
-        if (titulo.length !in 3..80) {
+        if (
+            titulo.length !in 3..80
+        ) {
+
             "El título debe tener entre 3 y 80 caracteres"
+
         } else {
+
             null
         }
 
     val errorDescripcion =
-        if (s.descripcion.length > 240) {
+        if (
+            s.descripcion.length > 240
+        ) {
+
             "La descripción no puede superar 240 caracteres"
+
         } else {
+
             null
         }
 
     val errorFecha =
-        validarFecha(s.fecha)
+        validarFecha(
+            s.fecha
+        )
 
     val progreso =
-        s.progreso.toIntOrNull()
+        s.progreso
+            .toIntOrNull()
 
     val errorProgreso =
         if (
             progreso == null ||
             progreso !in 0..100
         ) {
+
             "El progreso debe estar entre 0 y 100"
+
         } else {
+
             null
         }
 
     return s.copy(
 
-        errorTitulo = errorTitulo,
+        errorTitulo =
+            errorTitulo,
 
         errorDescripcion =
             errorDescripcion,
@@ -595,10 +768,13 @@ fun validarFecha(
                 Locale.getDefault()
             )
 
-        formato.isLenient = false
+        formato.isLenient =
+            false
 
         val fechaIngresada =
-            formato.parse(fecha)
+            formato.parse(
+                fecha
+            )
                 ?: return "Usa una fecha válida: AAAA-MM-DD"
 
         val hoy =
@@ -606,10 +782,17 @@ fun validarFecha(
 
         val fechaHoy =
             formato.parse(
-                formato.format(hoy.time)
-            ) ?: return "Usa una fecha válida: AAAA-MM-DD"
+                formato.format(
+                    hoy.time
+                )
+            )
+                ?: return "Usa una fecha válida: AAAA-MM-DD"
 
-        if (fechaIngresada.before(fechaHoy)) {
+        if (
+            fechaIngresada.before(
+                fechaHoy
+            )
+        ) {
 
             "La fecha no puede ser anterior a hoy"
 
@@ -618,7 +801,9 @@ fun validarFecha(
             null
         }
 
-    } catch (e: Exception) {
+    } catch (
+        e: Exception
+    ) {
 
         "Usa una fecha válida: AAAA-MM-DD"
     }

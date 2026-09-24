@@ -6,15 +6,19 @@ import com.sofia.miformacionctma.data.local.EvidenciaDao
 import com.sofia.miformacionctma.data.local.EvidenciaEntity
 import com.sofia.miformacionctma.data.local.toDomain
 import com.sofia.miformacionctma.data.local.toEntity
+import com.sofia.miformacionctma.data.remote.EnvioEvidenciaRemotoResultado
+import com.sofia.miformacionctma.data.remote.EvidenciaRemoteDataSource
 import com.sofia.miformacionctma.domain.ValidacionEvidencia
 import com.sofia.miformacionctma.domain.validarEvidencia
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
 class EvidenciaRepositoryImpl(
     private val dao: EvidenciaDao,
-    private val contentResolver: ContentResolver
+    private val contentResolver: ContentResolver,
+    private val remote: EvidenciaRemoteDataSource
 ) : EvidenciaRepository {
 
     override fun observarPorActividad(
@@ -64,7 +68,6 @@ class EvidenciaRepositoryImpl(
             )
         }
 
-        // Evidencia anterior asociada a la actividad.
         val existente =
             dao.buscarPorActividad(
                 actividadId
@@ -99,9 +102,9 @@ class EvidenciaRepositoryImpl(
                 evidencia
             }
 
-        // Si reemplazamos una fotografía creada por nuestra propia
-        // aplicación, eliminamos el archivo anterior después de que
-        // la nueva evidencia quedó registrada correctamente.
+        // Si se reemplaza una fotografía creada por nuestra app,
+        // eliminamos el archivo anterior después de guardar
+        // correctamente la nueva evidencia.
         if (
             existente != null &&
             existente.archivoPropio &&
@@ -116,6 +119,96 @@ class EvidenciaRepositoryImpl(
         return RegistroEvidenciaResultado.Exitosa(
             evidenciaGuardada
         )
+    }
+
+    override suspend fun sincronizar(
+        actividadId: Long
+    ): SincronizacionEvidenciaResultado {
+
+        val entidadInicial =
+            dao.buscarPorActividad(
+                actividadId
+            )
+                ?: return SincronizacionEvidenciaResultado.Fallida(
+                    "No hay una evidencia local para sincronizar."
+                )
+
+        // Antes de intentar la red dejamos persistido SUBIENDO.
+        val entidadSubiendo =
+            entidadInicial.copy(
+                estado = EstadoEvidencia.SUBIENDO.name
+            )
+
+        dao.actualizar(
+            entidadSubiendo
+        )
+
+        val evidenciaSubiendo =
+            entidadSubiendo.toDomain()
+
+        return try {
+
+            when (
+                val resultadoRemoto =
+                    remote.enviar(
+                        evidenciaSubiendo
+                    )
+            ) {
+
+                EnvioEvidenciaRemotoResultado.Exitosa -> {
+
+                    val actual =
+                        dao.buscarPorActividad(
+                            actividadId
+                        )
+                            ?: return SincronizacionEvidenciaResultado.Fallida(
+                                "La evidencia ya no está disponible."
+                            )
+
+                    val sincronizada =
+                        actual.copy(
+                            estado =
+                                EstadoEvidencia.SINCRONIZADA.name
+                        )
+
+                    dao.actualizar(
+                        sincronizada
+                    )
+
+                    SincronizacionEvidenciaResultado.Exitosa(
+                        sincronizada.toDomain()
+                    )
+                }
+
+                is EnvioEvidenciaRemotoResultado.Fallida -> {
+
+                    marcarComoFallida(
+                        actividadId
+                    )
+
+                    SincronizacionEvidenciaResultado.Fallida(
+                        resultadoRemoto.mensaje
+                    )
+                }
+            }
+
+        } catch (cancelacion: CancellationException) {
+
+            // No ocultamos la cancelación de la corrutina.
+            throw cancelacion
+
+        } catch (_: Exception) {
+
+            // Timeout, pérdida de red u otro fallo inesperado.
+            // Solo cambia el estado: la URI y metadatos permanecen.
+            marcarComoFallida(
+                actividadId
+            )
+
+            SincronizacionEvidenciaResultado.Fallida(
+                "No fue posible sincronizar la evidencia. Puedes reintentar."
+            )
+        }
     }
 
     override suspend fun actualizarEstado(
@@ -140,21 +233,17 @@ class EvidenciaRepositoryImpl(
         actividadId: Long
     ) {
 
-        // Primero recuperamos la evidencia porque necesitamos
-        // saber si el archivo pertenece a nuestra aplicación.
         val evidencia =
             dao.buscarPorActividad(
                 actividadId
             )
 
-        // Eliminamos el registro persistido en Room.
         dao.eliminarPorActividad(
             actividadId
         )
 
-        // Solo eliminamos físicamente archivos creados por
-        // nuestra aplicación. Una foto elegida desde la galería
-        // del usuario nunca debe borrarse.
+        // Una foto elegida desde la galería del usuario
+        // nunca se elimina físicamente.
         if (
             evidencia != null &&
             evidencia.archivoPropio
@@ -164,6 +253,24 @@ class EvidenciaRepositoryImpl(
                 evidencia
             )
         }
+    }
+
+    private suspend fun marcarComoFallida(
+        actividadId: Long
+    ) {
+
+        val actual =
+            dao.buscarPorActividad(
+                actividadId
+            )
+                ?: return
+
+        dao.actualizar(
+            actual.copy(
+                estado =
+                    EstadoEvidencia.FALLIDA.name
+            )
+        )
     }
 
     private fun uriEsLegible(

@@ -1132,7 +1132,7 @@ Principales implementaciones:
 - Pruebas instrumentadas para DAO y migraciones.
 - Integración de Room con la aplicación Android.
 
-Rama: feature/semana-06-room
+Rama: sofia
 
 
 🔵 Semana 7 - Corrutinas y Flow
@@ -1151,7 +1151,7 @@ Principales implementaciones:
 - Manejo de estados de carga, éxito y error.
 - Pruebas del ViewModel utilizando corrutinas.
 
-Rama: feature/semana-07-coroutines-flow
+Rama: sofia
 
 
 🟢 Semana 8 - Servicios web con Retrofit
@@ -1170,7 +1170,100 @@ Principales implementaciones:
 - Manejo de errores de comunicación y respuestas HTTP.
 - Pruebas con MockWebServer.
 
-Rama: feature/semana-08-servicios-web
+Rama: sofia
+
+
+
+## 📸 Semana 9 - Evidencias fotográficas, permisos y seguridad
+
+Durante la Semana 9 se incorporó el manejo de evidencias fotográficas para las actividades formativas, aplicando persistencia local, acceso seguro a archivos, estados de sincronización, permisos contextuales y configuración por ambientes.
+
+### Principales implementaciones
+
+- Selección de imágenes mediante Photo Picker sin solicitar acceso general al almacenamiento.
+- Captura de fotografías mediante `TakePicture`.
+- Uso de `FileProvider` y URI de contenido en lugar de rutas `file://`.
+- Persistencia de la URI y metadatos de la evidencia en Room.
+- Migración de base de datos para incorporar la entidad de evidencias.
+- Almacenamiento de tipo MIME, tamaño, nombre del archivo, estado y origen del archivo.
+- Validación de imágenes antes de persistirlas.
+- Límite máximo de 5 MB para las evidencias.
+- Vista previa de la imagen seleccionada o capturada.
+- Reemplazo y eliminación de evidencias.
+- Eliminación física de los archivos propios de la aplicación cuando corresponde.
+- Conservación de la evidencia anterior cuando la persona cancela la galería o la cámara.
+- Mensajes no alarmistas al cancelar una selección o captura.
+- Estados de sincronización `LOCAL`, `SUBIENDO`, `SINCRONIZADA` y `FALLIDA`.
+- Conservación de la evidencia local cuando una sincronización falla.
+- Opción para reintentar una sincronización fallida.
+- Contrato `EvidenciaRemoteDataSource` para separar la capa remota del repositorio.
+- Permiso `POST_NOTIFICATIONS` solicitado únicamente cuando la persona activa los recordatorios en Android 13 o superior.
+- La aplicación continúa siendo utilizable cuando el permiso de notificaciones no está disponible.
+- Separación de ambientes `dev`, `stage` y `prod` mediante Product Flavors.
+- URL del servicio configurada mediante `BuildConfig.API_BASE_URL`.
+- Tráfico HTTP permitido únicamente para el ambiente local `dev`.
+- Producción configurada para no permitir tráfico cleartext.
+- No se almacenan claves, tokens ni credenciales en el código fuente.
+
+### Persistencia
+
+Room almacena únicamente la URI y los metadatos de la evidencia. Las imágenes no se almacenan como Bitmap ni Base64 dentro de la base de datos.
+
+La base de datos fue actualizada a la versión correspondiente y se verificó la migración mediante pruebas instrumentadas.
+
+### Sincronización
+
+La aplicación contiene la arquitectura necesaria para manejar el ciclo de sincronización de evidencias:
+
+`LOCAL → SUBIENDO → SINCRONIZADA / FALLIDA`
+
+Cuando ocurre un error, la evidencia permanece disponible localmente y puede reintentarse.
+
+Actualmente el proyecto no dispone de una especificación real del endpoint del servidor para cargar evidencias. Por esta razón se implementó un `EvidenciaRemoteDataSourceNoConfigurado` que permite comprobar de forma segura el flujo de error y reintento sin simular una sincronización exitosa inexistente.
+
+Las URLs de `stage` y `prod` utilizadas actualmente son valores HTTPS de configuración y no representan servidores reales disponibles.
+
+### Validaciones realizadas
+
+| Criterio | Validación |
+|---|---|
+| CA01 | Selección de imagen, vista previa y persistencia mediante URI |
+| CA02 | Cancelar galería o cámara conserva la evidencia anterior |
+| CA03 | Cámara utiliza URI de contenido mediante FileProvider |
+| CA04 | Reglas de MIME, tamaño y lectura implementadas |
+| CA05 | Evidencia y metadatos persisten mediante Room |
+| CA06 | Una sincronización fallida mantiene la evidencia y permite reintentar |
+| CA07 | Los recordatorios utilizan permiso contextual de notificaciones |
+| CA08 | La eliminación borra el registro y el archivo propio cuando corresponde |
+| CA09 | `prodRelease` compila con configuración HTTPS y sin cleartext |
+
+### Pruebas ejecutadas
+
+- Pruebas unitarias `testDevDebugUnitTest`: `BUILD SUCCESSFUL`.
+- Pruebas instrumentadas `connectedDevDebugAndroidTest`: 4 pruebas ejecutadas correctamente.
+- Compilación `assembleProdRelease`: `BUILD SUCCESSFUL`.
+- Compilación final `compileDevDebugKotlin`: `BUILD SUCCESSFUL`.
+
+### Riesgos considerados
+
+| Riesgo | Tratamiento |
+|---|---|
+| Pérdida de evidencia al fallar la red | Mantener copia local y estado `FALLIDA` |
+| URI no legible | Validar acceso antes de persistir |
+| Archivo demasiado grande | Límite máximo de 5 MB |
+| Tipo de archivo no permitido | Validación del MIME |
+| Exposición de rutas internas | Uso de `FileProvider` y URI de contenido |
+| Permisos innecesarios | Uso de Photo Picker y permiso contextual |
+| Servidor no disponible | Reintento y conservación local |
+| Uso accidental de HTTP en producción | `usesCleartextTraffic="false"` y URL HTTPS |
+| Exposición de secretos | No almacenar credenciales en el repositorio |
+| Eliminación incompleta | Eliminar registro y archivo propio controlado por la app |
+
+### Resultado
+
+La aplicación permite asociar evidencias fotográficas a las actividades de forma segura, conservarlas localmente, visualizarlas, reemplazarlas, eliminarlas y controlar su estado de sincronización.
+
+La implementación mantiene separadas las responsabilidades de interfaz, ViewModel, repositorio, Room y capa remota.
 
 
 📊 Funcionalidades actuales de la aplicación
@@ -1436,8 +1529,7 @@ Mi Formación CTMA se encuentra en desarrollo académico como parte del program
 Actualmente el proyecto cuenta con:
 
 
-
-Desarrollo Android de las Semanas 1, 2, 3, 4, 6, 7 y 8.
+Desarrollo Android de las Semanas 1, 2, 3, 4, 6, 7, 8 y 9.
 
 
 

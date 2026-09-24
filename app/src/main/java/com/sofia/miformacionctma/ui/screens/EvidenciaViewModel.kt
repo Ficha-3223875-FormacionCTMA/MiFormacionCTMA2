@@ -7,7 +7,9 @@ import com.sofia.miformacionctma.data.EstadoEvidencia
 import com.sofia.miformacionctma.data.Evidencia
 import com.sofia.miformacionctma.data.EvidenciaRepository
 import com.sofia.miformacionctma.data.RegistroEvidenciaResultado
+import com.sofia.miformacionctma.data.SincronizacionEvidenciaResultado
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +51,7 @@ sealed interface OperacionEvidenciaUiState {
     ) : OperacionEvidenciaUiState
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class EvidenciaViewModel(
     private val repository: EvidenciaRepository
 ) : ViewModel() {
@@ -176,6 +179,65 @@ class EvidenciaViewModel(
                     )
             }
         }
+    }
+
+    fun sincronizar(
+        actividadId: Long
+    ) {
+
+        viewModelScope.launch {
+
+            _operacionUiState.value =
+                OperacionEvidenciaUiState.EnCurso
+
+            try {
+
+                when (
+                    val resultado =
+                        repository.sincronizar(
+                            actividadId
+                        )
+                ) {
+
+                    is SincronizacionEvidenciaResultado.Exitosa -> {
+
+                        _operacionUiState.value =
+                            OperacionEvidenciaUiState.Exitosa(
+                                "Evidencia sincronizada correctamente."
+                            )
+                    }
+
+                    is SincronizacionEvidenciaResultado.Fallida -> {
+
+                        _operacionUiState.value =
+                            OperacionEvidenciaUiState.Fallida(
+                                resultado.mensaje
+                            )
+                    }
+                }
+
+            } catch (e: CancellationException) {
+
+                throw e
+
+            } catch (e: Exception) {
+
+                _operacionUiState.value =
+                    OperacionEvidenciaUiState.Fallida(
+                        e.message
+                            ?: "No fue posible sincronizar la evidencia."
+                    )
+            }
+        }
+    }
+
+    fun reintentarSincronizacion(
+        actividadId: Long
+    ) {
+
+        sincronizar(
+            actividadId
+        )
     }
 
     fun eliminar(

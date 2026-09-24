@@ -6,20 +6,21 @@ import com.sofia.miformacionctma.data.preferences.PreferenciasUi
 import com.sofia.miformacionctma.domain.ActividadFormativa
 import com.sofia.miformacionctma.domain.Prioridad
 import com.sofia.miformacionctma.ui.screens.ActividadesViewModel
+import com.sofia.miformacionctma.ui.state.FormularioActividadUiState
 import com.sofia.miformacionctma.ui.state.ListadoUiState
+import com.sofia.miformacionctma.ui.state.OperacionUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.launch
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,160 +30,385 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class ActividadesViewModelFlowTest {
 
-    private val dispatcher = StandardTestDispatcher()
-    private lateinit var repository: FakeActividadRepository
-    private lateinit var preferencias: FakePreferenciasSource
-    private lateinit var viewModel: ActividadesViewModel
+    private val dispatcher =
+        StandardTestDispatcher()
 
-    private val actividad = ActividadFormativa(
-        id = 1L,
-        titulo = "Kotlin",
-        descripcion = "Practicar Flow",
-        progreso = 50,
-        diasRestantes = 5,
-        prioridad = Prioridad.MEDIA,
-        fecha = "2099-12-31"
-    )
+    private lateinit var repository:
+            FakeActividadRepository
+
+    private lateinit var preferencias:
+            FakePreferenciasSource
+
+    private lateinit var viewModel:
+            ActividadesViewModel
+
+    private val actividad =
+        ActividadFormativa(
+            id = 1L,
+            titulo = "Kotlin",
+            descripcion = "Practicar Flow",
+            progreso = 50,
+            diasRestantes = 5,
+            prioridad = Prioridad.MEDIA,
+            fecha = "2099-12-31"
+        )
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(dispatcher)
-        repository = FakeActividadRepository(listOf(actividad))
-        preferencias = FakePreferenciasSource()
-        viewModel = ActividadesViewModel(repository, preferencias)
+
+        Dispatchers.setMain(
+            dispatcher
+        )
+
+        repository =
+            FakeActividadRepository(
+                listOf(
+                    actividad
+                )
+            )
+
+        preferencias =
+            FakePreferenciasSource()
+
+        viewModel =
+            ActividadesViewModel(
+                repository,
+                preferencias
+            )
     }
 
     @After
     fun tearDown() {
+
         Dispatchers.resetMain()
     }
 
     @Test
-    fun estadoInicialPasaAContenido() = runTest {
-        val job = backgroundScope.launch {
-            viewModel.uiState.collect {}
-        }
+    fun estadoInicialPasaAContenido() =
+        runTest {
 
-        advanceUntilIdle()
+            val job =
+                backgroundScope.launch {
 
-        val estado = viewModel.uiState.value
-        assertTrue(estado is ListadoUiState.Contenido)
-        assertEquals(1, (estado as ListadoUiState.Contenido).actividades.size)
+                    viewModel
+                        .uiState
+                        .collect {}
+                }
 
-        job.cancel()
-    }
+            advanceUntilIdle()
 
-    @Test
-    fun busquedaRapidaConservaLaMasReciente() = runTest {
-        val job = backgroundScope.launch {
-            viewModel.uiState.collect {}
-        }
+            val estado =
+                viewModel
+                    .uiState
+                    .value
 
-        viewModel.cambiarBusqueda("Ko")
-        advanceTimeBy(100)
-        viewModel.cambiarBusqueda("Kotlin")
-        advanceTimeBy(300)
-        advanceUntilIdle()
-
-        val estado = viewModel.uiState.value
-        assertTrue(estado is ListadoUiState.Contenido)
-        assertEquals("Kotlin", (estado as ListadoUiState.Contenido).actividades.first().titulo)
-
-        job.cancel()
-    }
-
-    @Test
-    fun falloDeRepositorioProduceOperacionFallida() = runTest {
-        repository.fallarOperaciones = true
-
-        viewModel.agregar(
-            com.sofia.miformacionctma.ui.state.FormularioActividadUiState(
-                titulo = "Nueva",
-                fecha = "2099-12-31",
-                progreso = "10",
-                puedeGuardar = true
+            assertTrue(
+                estado
+                        is ListadoUiState.Contenido
             )
-        )
 
-        advanceUntilIdle()
+            assertEquals(
+                1,
+                (
+                        estado
+                                as ListadoUiState.Contenido
+                        )
+                    .actividades
+                    .size
+            )
 
-        assertTrue(
-            viewModel.operacionUiState.value
-                is com.sofia.miformacionctma.ui.state.OperacionUiState.Fallida
-        )
-    }
-
-    @Test
-    fun listaVaciaProduceEstadoVacio() = runTest {
-        repository.emitir(emptyList())
-
-        val job = backgroundScope.launch {
-            viewModel.uiState.collect {}
+            job.cancel()
         }
 
-        advanceUntilIdle()
+    @Test
+    fun busquedaRapidaConservaLaMasReciente() =
+        runTest {
 
-        assertEquals(ListadoUiState.Vacio, viewModel.uiState.value)
+            val job =
+                backgroundScope.launch {
 
-        job.cancel()
-    }
+                    viewModel
+                        .uiState
+                        .collect {}
+                }
+
+            viewModel
+                .cambiarBusqueda(
+                    "Ko"
+                )
+
+            advanceTimeBy(
+                100
+            )
+
+            viewModel
+                .cambiarBusqueda(
+                    "Kotlin"
+                )
+
+            advanceTimeBy(
+                300
+            )
+
+            advanceUntilIdle()
+
+            val estado =
+                viewModel
+                    .uiState
+                    .value
+
+            assertTrue(
+                estado
+                        is ListadoUiState.Contenido
+            )
+
+            assertEquals(
+                "Kotlin",
+                (
+                        estado
+                                as ListadoUiState.Contenido
+                        )
+                    .actividades
+                    .first()
+                    .titulo
+            )
+
+            job.cancel()
+        }
+
+    @Test
+    fun falloDeRepositorioProduceOperacionFallida() =
+        runTest {
+
+            repository
+                .fallarOperaciones =
+                true
+
+            viewModel.agregar(
+                FormularioActividadUiState(
+                    titulo = "Nueva",
+                    fecha = "2099-12-31",
+                    progreso = "10",
+                    puedeGuardar = true
+                )
+            )
+
+            advanceUntilIdle()
+
+            assertTrue(
+                viewModel
+                    .operacionUiState
+                    .value
+                        is OperacionUiState.Fallida
+            )
+        }
+
+    @Test
+    fun listaVaciaProduceEstadoVacio() =
+        runTest {
+
+            repository.emitir(
+                emptyList()
+            )
+
+            val job =
+                backgroundScope.launch {
+
+                    viewModel
+                        .uiState
+                        .collect {}
+                }
+
+            advanceUntilIdle()
+
+            assertEquals(
+                ListadoUiState.Vacio,
+                viewModel
+                    .uiState
+                    .value
+            )
+
+            job.cancel()
+        }
 }
 
 private class FakeActividadRepository(
     initial: List<ActividadFormativa>
 ) : ActividadRepository {
 
-    var fallarOperaciones: Boolean = false
+    var fallarOperaciones:
+            Boolean = false
 
-    private val datos = MutableStateFlow(initial)
+    private val datos =
+        MutableStateFlow(
+            initial
+        )
 
-    override fun observarTodas(): Flow<List<ActividadFormativa>> = datos
+    override fun observarTodas():
+            Flow<List<ActividadFormativa>> =
+        datos
 
-    override fun buscarPorTexto(texto: String): Flow<List<ActividadFormativa>> =
+    override fun buscarPorTexto(
+        texto: String
+    ): Flow<List<ActividadFormativa>> =
+
         datos.map { lista ->
-            lista.filter { it.titulo.contains(texto, ignoreCase = true) }
+
+            lista.filter {
+
+                it.titulo.contains(
+                    texto,
+                    ignoreCase = true
+                )
+            }
         }
 
-    override suspend fun buscarPorId(id: Long): ActividadFormativa? =
-        datos.value.firstOrNull { it.id == id }
+    override suspend fun buscarPorId(
+        id: Long
+    ): ActividadFormativa? =
 
-    override suspend fun agregar(actividad: ActividadFormativa) {
-        if (fallarOperaciones) error("Fallo simulado")
-        datos.value = datos.value + actividad
-    }
+        datos.value
+            .firstOrNull {
 
-    override suspend fun actualizar(actividad: ActividadFormativa) {
-        datos.value = datos.value.map {
-            if (it.id == actividad.id) actividad else it
+                it.id == id
+            }
+
+    override suspend fun agregar(
+        actividad: ActividadFormativa
+    ) {
+
+        if (
+            fallarOperaciones
+        ) {
+
+            error(
+                "Fallo simulado"
+            )
         }
+
+        datos.value =
+            datos.value +
+                    actividad
     }
 
-    override suspend fun eliminar(id: Long) {
-        datos.value = datos.value.filterNot { it.id == id }
+    override suspend fun actualizar(
+        actividad: ActividadFormativa
+    ) {
+
+        datos.value =
+            datos.value.map {
+
+                if (
+                    it.id ==
+                    actividad.id
+                ) {
+
+                    actividad
+
+                } else {
+
+                    it
+                }
+            }
     }
 
-    fun emitir(lista: List<ActividadFormativa>) {
-        datos.value = lista
+    override suspend fun eliminar(
+        id: Long
+    ) {
+
+        datos.value =
+            datos.value
+                .filterNot {
+
+                    it.id == id
+                }
+    }
+
+    fun emitir(
+        lista:
+        List<ActividadFormativa>
+    ) {
+
+        datos.value =
+            lista
     }
 }
 
-private class FakePreferenciasSource : PreferenciasSource {
+private class FakePreferenciasSource :
+    PreferenciasSource {
 
-    private val datos = MutableStateFlow(PreferenciasUi())
+    private val datos =
+        MutableStateFlow(
+            PreferenciasUi()
+        )
 
-    override val preferencias: Flow<PreferenciasUi> = datos
+    override val preferencias:
+            Flow<PreferenciasUi> =
+        datos
 
-    override suspend fun guardarCategoria(categoriaId: String?) {
-        datos.value = datos.value.copy(categoriaId = categoriaId)
+    override suspend fun guardarCategoria(
+        categoriaId: String?
+    ) {
+
+        datos.value =
+            datos.value.copy(
+                categoriaId =
+                    categoriaId
+            )
     }
 
-    override suspend fun guardarOrden(orden: String) {
-        datos.value = datos.value.copy(orden = orden)
+    override suspend fun guardarOrden(
+        orden: String
+    ) {
+
+        datos.value =
+            datos.value.copy(
+                orden =
+                    orden
+            )
     }
 
-    override suspend fun guardarModoVisualizacion(modo: String) {
-        datos.value = datos.value.copy(modoVisualizacion = modo)
+    override suspend fun guardarModoVisualizacion(
+        modo: String
+    ) {
+
+        datos.value =
+            datos.value.copy(
+                modoVisualizacion =
+                    modo
+            )
     }
 
-    override suspend fun guardarFiltrosActivos(activos: Boolean) = Unit
+    override suspend fun guardarFiltrosActivos(
+        activos: Boolean
+    ) {
+
+        datos.value =
+            datos.value.copy(
+                filtrosActivos =
+                    activos
+            )
+    }
+
+    override suspend fun guardarRecordatoriosActivos(
+        activos: Boolean
+    ) {
+
+        datos.value =
+            datos.value.copy(
+                recordatoriosActivos =
+                    activos
+            )
+    }
+
+    override suspend fun guardarPermisoNotificacionesSolicitado(
+        solicitado: Boolean
+    ) {
+
+        datos.value =
+            datos.value.copy(
+                permisoNotificacionesSolicitado =
+                    solicitado
+            )
+    }
 }
