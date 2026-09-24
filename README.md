@@ -1,31 +1,1609 @@
-# MiFormacionCTMA2
+MiFormacionCTMA2
 
-**Primer proyecto Android - Semana 1 ADSO**
 
-## Problema
 
-Los aprendices manejan actividades, fechas y evidencias en diferentes canales, lo que genera olvidos y poca organización. La aplicación Mi Formación CTMA permitirá consultar compromisos y registrar avances desde el celular.
+svg
 
-## Usuarios
 
-* **Aprendiz:** consultar actividades y registrar avances.
-* **Instructor:** publicar actividades y hacer seguimiento.
 
-## Historias de usuario
+Aplicación móvil desarrollada en Android Studio con Kotlin y Jetpack Compose, orientada a la organización, consulta y seguimiento de actividades de formación de los aprendices del CTMA.
 
-1. Como aprendiz quiero ver mis actividades para organizar mi semana.
-2. Como aprendiz quiero registrar una evidencia para controlar mis entregas.
-3. Como instructor quiero publicar actividades para que los aprendices las consulten.
 
-## Criterios de aceptación
 
-* La lista de actividades debe mostrarse al abrir la app.
-* El registro de evidencia debe guardar una descripción básica.
-* Las actividades publicadas por el instructor deben ser visibles para el aprendiz.
+📱 Descripción del proyecto
 
-## Tecnologías utilizadas
 
-* Android Studio
-* Kotlin
-* Jetpack Compose
-* Git y GitHub
+
+svg
+
+
+
+Mi Formación CTMA es una aplicación móvil desarrollada como parte del proceso de formación en Análisis y Desarrollo de Software (ADSO).
+
+
+
+El proyecto permite visualizar actividades formativas, consultar su progreso, conocer su estado y organizar la información de manera sencilla mediante una interfaz desarrollada con Jetpack Compose.
+
+
+
+El proyecto se ha desarrollado progresivamente durante las diferentes semanas de formación, incorporando funcionalidades de Android, además de documentación y actividades relacionadas con SCRUM y Pruebas de Software.
+
+
+
+🚀 Tecnologías utilizadas
+
+
+
+svg
+
+
+
+Kotlin
+
+
+
+Android Studio
+
+
+
+Jetpack Compose
+
+
+
+Material 3
+
+
+
+Git
+
+
+
+GitHub
+
+
+
+SCRUM
+
+
+
+Pruebas de Software
+
+
+
+📂 Estructura del proyecto
+
+
+
+svg
+
+
+
+MiFormacionCTMA2/
+
+│
+
+├── app/
+
+│   └── src/
+
+│       └── main/
+
+│           └── java/
+
+│               └── com/
+
+│                   └── sofia/
+
+│                       └── miformacionctma/
+
+│                           ├── MainActivity.kt
+
+│                           │
+
+│                           ├── domain/
+
+│                           │
+
+│                           ├── ui/
+
+│                           │   ├── components/
+
+│                           │   │   └── TarjetaActividad.kt
+
+│                           │   │
+
+│                           │   ├── screens/
+
+│                           │   │   └── PantallaActividades.kt
+
+│                           │   │
+
+│                           │   └── theme/
+
+│                           │
+
+│                           └── ...
+
+│
+
+├── ENTREGABLES\_SCRUM/
+
+│   ├── Semana\_2/
+
+│   ├── Semana\_3/
+
+│   └── README\_SCRUM.md
+
+│
+
+└── README.md
+
+
+
+
+
+svg
+
+
+
+📚 Semanas de Android
+
+
+
+svg
+
+
+
+🟢 Semana 1 - Introducción al desarrollo Android
+
+
+
+svg
+
+
+
+Durante la Semana 1 se inició el desarrollo de la aplicación Mi Formación CTMA utilizando Android Studio.
+
+
+
+Actividades realizadas
+
+
+
+svg
+
+
+
+Creación y configuración del proyecto Android.
+
+
+
+Configuración del entorno de desarrollo.
+
+
+
+Uso de Kotlin.
+
+
+
+Creación de la actividad principal.
+
+
+
+Ejecución de la aplicación en el emulador.
+
+
+
+Reconocimiento de la estructura de un proyecto Android.
+
+
+
+Inicio de la interfaz de usuario.
+
+
+
+Uso inicial de Jetpack Compose.
+
+
+
+Resultado
+
+
+
+svg
+
+
+
+Se obtuvo la estructura inicial de la aplicación y una primera versión funcional ejecutándose en el emulador de Android.
+
+
+
+🔵 Semana 2 - Desarrollo de la interfaz
+
+
+
+svg
+
+
+
+Durante la Semana 2 se continuó con el desarrollo de la interfaz de Mi Formación CTMA utilizando Jetpack Compose.
+
+
+
+Actividades realizadas
+
+
+
+svg
+
+
+
+Construcción de componentes de interfaz.
+
+
+
+Organización del código por paquetes.
+
+
+
+Creación de pantallas.
+
+
+
+Uso de componentes reutilizables.
+
+
+
+Implementación de elementos visuales para mostrar información de las actividades.
+
+
+
+Organización de la información de cada actividad.
+
+
+
+Pruebas de ejecución en el emulador.
+
+
+
+Resultado
+
+
+
+svg
+
+
+
+La aplicación comenzó a contar con una interfaz organizada para mostrar las actividades de formación.
+
+
+
+🟣 Semana 3 - Componentes y pantallas
+
+
+
+svg
+
+
+
+Durante la Semana 3 se implementaron nuevos componentes y pantallas para mejorar la estructura y presentación de la aplicación.
+
+
+
+Componentes desarrollados
+
+
+
+svg
+
+
+
+TarjetaActividad.kt
+
+
+
+PantallaActividades.kt
+
+
+
+Actividades realizadas
+
+
+
+svg
+
+
+
+Creación de tarjetas para mostrar actividades.
+
+
+
+Visualización del título de cada actividad.
+
+
+
+Visualización de la descripción.
+
+
+
+Visualización del progreso.
+
+
+
+Visualización del estado.
+
+
+
+Visualización de días restantes.
+
+
+
+Visualización de prioridad.
+
+
+
+Organización de las actividades en pantalla.
+
+
+
+Implementación de una interfaz adaptable.
+
+
+
+Pruebas en el emulador.
+
+
+
+Resultado
+
+
+
+svg
+
+
+
+La aplicación cuenta con una pantalla funcional para consultar las actividades de formación y visualizar información relacionada con su progreso y estado.
+
+
+
+🟡 Semana 4 - Estado, formularios y navegación
+
+
+
+Durante la Semana 4 se amplió la aplicación Mi Formación CTMA incorporando manejo de estado, formularios con validaciones y navegación entre las principales pantallas de la aplicación.
+
+
+
+Actividades realizadas
+
+
+
+Implementación de FormularioActividadUiState para centralizar el estado del formulario.
+
+
+
+Manejo del estado de título, descripción, fecha, prioridad y progreso.
+
+
+
+Validación del título entre 3 y 80 caracteres.
+
+
+
+Validación de la descripción con máximo de 240 caracteres.
+
+
+
+Validación de fechas con formato AAAA-MM-DD.
+
+
+
+Validación para impedir fechas anteriores al día actual.
+
+
+
+Validación del progreso entre 0 y 100.
+
+
+
+Habilitación de Guardar actividad únicamente cuando los datos son válidos.
+
+
+
+Uso de rememberSaveable para conservar el estado del formulario.
+
+
+
+Implementación de ActividadesViewModel para administrar la lista de actividades.
+
+
+
+Creación de nuevas actividades desde el formulario.
+
+
+
+Cálculo de los días restantes de una actividad.
+
+
+
+Implementación de la pantalla de detalle de una actividad.
+
+
+
+Implementación de navegación con NavHost y NavController.
+
+
+
+Navegación Lista → Nueva actividad → Lista.
+
+
+
+Navegación Lista → Detalle → Atrás → Lista.
+
+
+
+Uso del identificador de la actividad para acceder al detalle.
+
+
+
+Prevención del guardado cuando el formulario no cumple las reglas.
+
+
+
+Implementación de pruebas unitarias para las validaciones principales.
+
+
+
+Componentes agregados o modificados
+
+
+
+MainActivity.kt
+
+
+
+ActividadesViewModel.kt
+
+
+
+FormularioActividad.kt
+
+
+
+FormularioActividadUiState.kt
+
+
+
+DetalleActividadScreen.kt
+
+
+
+PantallaActividades.kt
+
+
+
+FormularioActividadTest.kt
+
+
+
+Resultado
+
+
+
+La aplicación ahora permite consultar las actividades existentes, abrir su detalle, crear nuevas actividades mediante un formulario, validar los datos ingresados y regresar a la lista después de guardar.
+
+
+
+La funcionalidad mantiene la organización del proyecto y continúa utilizando Kotlin, Jetpack Compose y Material 3.
+
+
+
+🧪 SCRUM Y PRUEBAS DE SOFTWARE
+
+
+
+svg
+
+
+
+Además del desarrollo Android, el proyecto incluye los productos correspondientes a las actividades de SCRUM y Pruebas de Software.
+
+
+
+Los entregables se encuentran dentro de:
+
+
+
+ENTREGABLES\_SCRUM/
+
+
+
+
+
+svg
+
+
+
+🟠 Semana 2 - SCRUM y Pruebas de Software
+
+
+
+svg
+
+
+
+Durante la Semana 2 se trabajó en la definición de los requisitos, criterios de aceptación, planificación de pruebas y gestión inicial de riesgos.
+
+
+
+Historias de usuario
+
+
+
+svg
+
+
+
+Se definieron historias de usuario relacionadas con las principales funcionalidades de la aplicación:
+
+
+
+Consultar actividades.
+
+
+
+Consultar estado y progreso.
+
+
+
+Seleccionar una actividad.
+
+
+
+Cada historia cuenta con sus respectivos criterios de aceptación.
+
+
+
+Criterios de aceptación
+
+
+
+svg
+
+
+
+Se establecieron criterios para determinar cuándo una funcionalidad cumple con lo esperado.
+
+
+
+También se definieron criterios relacionados con aspectos no funcionales, como el comportamiento y rendimiento esperado de la aplicación.
+
+
+
+Product Backlog
+
+
+
+svg
+
+
+
+Se organizó un Product Backlog con las funcionalidades principales del proyecto, estableciendo prioridades para su desarrollo.
+
+
+
+Definition of Ready
+
+
+
+svg
+
+
+
+Se establecieron condiciones para determinar cuándo una historia de usuario cuenta con la información necesaria para ser trabajada.
+
+
+
+Definition of Done
+
+
+
+svg
+
+
+
+Se establecieron condiciones para considerar terminada una historia de usuario, incluyendo desarrollo, revisión y pruebas.
+
+
+
+Matriz de riesgos
+
+
+
+svg
+
+
+
+Se identificaron riesgos relacionados con:
+
+
+
+Funcionamiento de la aplicación.
+
+
+
+Validación de datos.
+
+
+
+Interfaz de usuario.
+
+
+
+Pruebas.
+
+
+
+Integración.
+
+
+
+Cumplimiento de requisitos.
+
+
+
+Cada riesgo cuenta con una respuesta o estrategia de tratamiento.
+
+
+
+Plan de pruebas
+
+
+
+svg
+
+
+
+Se elaboró el Plan de Pruebas versión 1, donde se definieron:
+
+
+
+Objetivo.
+
+
+
+Alcance.
+
+
+
+Fuera de alcance.
+
+
+
+Base de pruebas.
+
+
+
+Riesgos.
+
+
+
+Estrategia.
+
+
+
+Ambiente de pruebas.
+
+
+
+Datos de prueba.
+
+
+
+Roles.
+
+
+
+Criterios de entrada y salida.
+
+
+
+Entregables.
+
+
+
+Cronograma.
+
+
+
+Matriz de trazabilidad
+
+
+
+svg
+
+
+
+Se inició la trazabilidad entre:
+
+
+
+Historia de usuario
+
+&#x20;       ↓
+
+Criterio de aceptación
+
+&#x20;       ↓
+
+Riesgo
+
+&#x20;       ↓
+
+Caso de prueba
+
+
+
+
+
+svg
+
+
+
+Revisión entre pares
+
+
+
+svg
+
+
+
+Se incluyó una revisión de los productos elaborados para identificar posibles mejoras, inconsistencias o elementos pendientes.
+
+
+
+🔴 Semana 3 - SCRUM y Pruebas de Software
+
+
+
+svg
+
+
+
+Durante la Semana 3 se transformaron los requisitos definidos anteriormente en casos de prueba y técnicas de diseño de pruebas.
+
+
+
+Casos de prueba
+
+
+
+svg
+
+
+
+Se diseñaron casos de prueba para comprobar diferentes comportamientos de la aplicación.
+
+
+
+Se incluyeron:
+
+
+
+Pruebas positivas.
+
+
+
+Pruebas negativas.
+
+
+
+Pruebas de valores límite.
+
+
+
+Pruebas de partición de equivalencia.
+
+
+
+Pruebas de transición de estados.
+
+
+
+Escenarios de caso de uso.
+
+
+
+Pruebas de regresión.
+
+
+
+Partición de equivalencia
+
+
+
+svg
+
+
+
+Se analizaron diferentes grupos de valores para el progreso de una actividad:
+
+
+
+Valores menores que 0.
+
+
+
+Valores entre 0 y 100.
+
+
+
+Valores mayores que 100.
+
+
+
+Esto permite identificar entradas válidas e inválidas.
+
+
+
+Valores límite
+
+
+
+svg
+
+
+
+Se definieron valores cercanos a los límites para realizar las pruebas:
+
+
+
+\-1
+
+0
+
+1
+
+99
+
+100
+
+101
+
+
+
+
+
+svg
+
+
+
+Estos valores permiten comprobar el comportamiento de las reglas de validación.
+
+
+
+Tabla de decisión
+
+
+
+svg
+
+
+
+Se elaboró una tabla de decisión para analizar los diferentes estados de una actividad:
+
+
+
+Pendiente.
+
+
+
+En curso.
+
+
+
+Completada.
+
+
+
+Vencida.
+
+
+
+Transición de estados
+
+
+
+svg
+
+
+
+Se documentaron posibles cambios de estado de las actividades.
+
+
+
+Ejemplo:
+
+
+
+PENDIENTE
+
+&#x20;   ↓
+
+EN CURSO
+
+&#x20;   ↓
+
+COMPLETADA
+
+
+
+
+
+svg
+
+
+
+También se analizaron situaciones relacionadas con actividades vencidas.
+
+
+
+Casos de uso
+
+
+
+svg
+
+
+
+Se documentó un caso de uso relacionado con la consulta y selección de actividades.
+
+
+
+Datos de prueba
+
+
+
+svg
+
+
+
+Se definieron datos ficticios para realizar las diferentes pruebas de la aplicación.
+
+
+
+Gestión de defectos
+
+
+
+svg
+
+
+
+Se documentó el proceso para registrar defectos, incluyendo:
+
+
+
+Identificación.
+
+
+
+Descripción.
+
+
+
+Pasos para reproducir.
+
+
+
+Resultado esperado.
+
+
+
+Resultado obtenido.
+
+
+
+Severidad.
+
+
+
+Prioridad.
+
+
+
+Evidencia.
+
+
+
+Estado.
+
+
+
+Ejecución de pruebas
+
+
+
+svg
+
+
+
+Se preparó una ejecución de pruebas y un registro de resultados para documentar el comportamiento esperado de los casos de prueba.
+
+
+
+Nota: Los resultados marcados como simulados en los entregables deben reemplazarse por resultados reales y evidencias cuando las pruebas se ejecuten directamente en Android Studio.
+
+
+
+Trazabilidad actualizada
+
+
+
+svg
+
+
+
+Se actualizó la relación:
+
+
+
+Historia de usuario
+
+&#x20;       ↓
+
+Criterio de aceptación
+
+&#x20;       ↓
+
+Riesgo
+
+&#x20;       ↓
+
+Caso de prueba
+
+&#x20;       ↓
+
+Resultado
+
+&#x20;       ↓
+
+Defecto
+
+
+
+
+
+svg
+
+
+
+Ticket de salida
+
+
+
+svg
+
+
+
+Se documentaron los conocimientos y actividades realizadas durante la Semana 3, incluyendo:
+
+
+
+Valores límite.
+
+
+
+Partición de equivalencia.
+
+
+
+Tabla de decisión.
+
+
+
+Transición de estados.
+
+
+
+Casos de prueba.
+
+
+
+Gestión de defectos.
+
+
+
+Trazabilidad.
+
+
+
+🟣 Semana 6 - Persistencia local con Room
+
+Durante la Semana 6 se implementó la persistencia local de la información utilizando Room.
+
+Principales implementaciones:
+
+- Base de datos local con Room.
+- Entidades y DAOs para las actividades y reportes.
+- Repositorios para gestionar el acceso a los datos.
+- Mapeadores entre entidades y modelos de dominio.
+- Migraciones de la base de datos.
+- Pruebas instrumentadas para DAO y migraciones.
+- Integración de Room con la aplicación Android.
+
+Rama: sofia
+
+
+🔵 Semana 7 - Corrutinas y Flow
+
+Durante la Semana 7 se implementó el manejo de operaciones asíncronas y estado reactivo mediante Kotlin Coroutines y Flow.
+
+Principales implementaciones:
+
+- Uso de corrutinas para operaciones asíncronas.
+- Uso de Flow para observar cambios de datos.
+- Estados reactivos para la interfaz.
+- Búsqueda y ordenamiento de actividades.
+- Ordenamiento por nombre y progreso.
+- Vista de lista y cuadrícula.
+- Actualización de información desde el servidor.
+- Manejo de estados de carga, éxito y error.
+- Pruebas del ViewModel utilizando corrutinas.
+
+Rama: sofia
+
+
+🟢 Semana 8 - Servicios web con Retrofit
+
+Durante la Semana 8 se implementó el consumo de servicios web REST mediante Retrofit y Kotlin Serialization.
+
+Principales implementaciones:
+
+- Configuración de Retrofit.
+- Consumo de servicios REST.
+- DTOs para los datos de la API.
+- Kotlin Serialization para serialización y deserialización.
+- RemoteDataSource para la comunicación con el servidor.
+- Integración de datos remotos con el repositorio.
+- Integración con Room para la persistencia local.
+- Manejo de errores de comunicación y respuestas HTTP.
+- Pruebas con MockWebServer.
+
+Rama: sofia
+
+
+
+## 📸 Semana 9 - Evidencias fotográficas, permisos y seguridad
+
+Durante la Semana 9 se incorporó el manejo de evidencias fotográficas para las actividades formativas, aplicando persistencia local, acceso seguro a archivos, estados de sincronización, permisos contextuales y configuración por ambientes.
+
+### Principales implementaciones
+
+- Selección de imágenes mediante Photo Picker sin solicitar acceso general al almacenamiento.
+- Captura de fotografías mediante `TakePicture`.
+- Uso de `FileProvider` y URI de contenido en lugar de rutas `file://`.
+- Persistencia de la URI y metadatos de la evidencia en Room.
+- Migración de base de datos para incorporar la entidad de evidencias.
+- Almacenamiento de tipo MIME, tamaño, nombre del archivo, estado y origen del archivo.
+- Validación de imágenes antes de persistirlas.
+- Límite máximo de 5 MB para las evidencias.
+- Vista previa de la imagen seleccionada o capturada.
+- Reemplazo y eliminación de evidencias.
+- Eliminación física de los archivos propios de la aplicación cuando corresponde.
+- Conservación de la evidencia anterior cuando la persona cancela la galería o la cámara.
+- Mensajes no alarmistas al cancelar una selección o captura.
+- Estados de sincronización `LOCAL`, `SUBIENDO`, `SINCRONIZADA` y `FALLIDA`.
+- Conservación de la evidencia local cuando una sincronización falla.
+- Opción para reintentar una sincronización fallida.
+- Contrato `EvidenciaRemoteDataSource` para separar la capa remota del repositorio.
+- Permiso `POST_NOTIFICATIONS` solicitado únicamente cuando la persona activa los recordatorios en Android 13 o superior.
+- La aplicación continúa siendo utilizable cuando el permiso de notificaciones no está disponible.
+- Separación de ambientes `dev`, `stage` y `prod` mediante Product Flavors.
+- URL del servicio configurada mediante `BuildConfig.API_BASE_URL`.
+- Tráfico HTTP permitido únicamente para el ambiente local `dev`.
+- Producción configurada para no permitir tráfico cleartext.
+- No se almacenan claves, tokens ni credenciales en el código fuente.
+
+### Persistencia
+
+Room almacena únicamente la URI y los metadatos de la evidencia. Las imágenes no se almacenan como Bitmap ni Base64 dentro de la base de datos.
+
+La base de datos fue actualizada a la versión correspondiente y se verificó la migración mediante pruebas instrumentadas.
+
+### Sincronización
+
+La aplicación contiene la arquitectura necesaria para manejar el ciclo de sincronización de evidencias:
+
+`LOCAL → SUBIENDO → SINCRONIZADA / FALLIDA`
+
+Cuando ocurre un error, la evidencia permanece disponible localmente y puede reintentarse.
+
+Actualmente el proyecto no dispone de una especificación real del endpoint del servidor para cargar evidencias. Por esta razón se implementó un `EvidenciaRemoteDataSourceNoConfigurado` que permite comprobar de forma segura el flujo de error y reintento sin simular una sincronización exitosa inexistente.
+
+Las URLs de `stage` y `prod` utilizadas actualmente son valores HTTPS de configuración y no representan servidores reales disponibles.
+
+### Validaciones realizadas
+
+| Criterio | Validación |
+|---|---|
+| CA01 | Selección de imagen, vista previa y persistencia mediante URI |
+| CA02 | Cancelar galería o cámara conserva la evidencia anterior |
+| CA03 | Cámara utiliza URI de contenido mediante FileProvider |
+| CA04 | Reglas de MIME, tamaño y lectura implementadas |
+| CA05 | Evidencia y metadatos persisten mediante Room |
+| CA06 | Una sincronización fallida mantiene la evidencia y permite reintentar |
+| CA07 | Los recordatorios utilizan permiso contextual de notificaciones |
+| CA08 | La eliminación borra el registro y el archivo propio cuando corresponde |
+| CA09 | `prodRelease` compila con configuración HTTPS y sin cleartext |
+
+### Pruebas ejecutadas
+
+- Pruebas unitarias `testDevDebugUnitTest`: `BUILD SUCCESSFUL`.
+- Pruebas instrumentadas `connectedDevDebugAndroidTest`: 4 pruebas ejecutadas correctamente.
+- Compilación `assembleProdRelease`: `BUILD SUCCESSFUL`.
+- Compilación final `compileDevDebugKotlin`: `BUILD SUCCESSFUL`.
+
+### Riesgos considerados
+
+| Riesgo | Tratamiento |
+|---|---|
+| Pérdida de evidencia al fallar la red | Mantener copia local y estado `FALLIDA` |
+| URI no legible | Validar acceso antes de persistir |
+| Archivo demasiado grande | Límite máximo de 5 MB |
+| Tipo de archivo no permitido | Validación del MIME |
+| Exposición de rutas internas | Uso de `FileProvider` y URI de contenido |
+| Permisos innecesarios | Uso de Photo Picker y permiso contextual |
+| Servidor no disponible | Reintento y conservación local |
+| Uso accidental de HTTP en producción | `usesCleartextTraffic="false"` y URL HTTPS |
+| Exposición de secretos | No almacenar credenciales en el repositorio |
+| Eliminación incompleta | Eliminar registro y archivo propio controlado por la app |
+
+### Resultado
+
+La aplicación permite asociar evidencias fotográficas a las actividades de forma segura, conservarlas localmente, visualizarlas, reemplazarlas, eliminarlas y controlar su estado de sincronización.
+
+La implementación mantiene separadas las responsabilidades de interfaz, ViewModel, repositorio, Room y capa remota.
+
+
+📊 Funcionalidades actuales de la aplicación
+
+
+
+svg
+
+
+
+La aplicación permite:
+
+
+
+📋 Visualizar actividades formativas.
+
+
+
+📈 Consultar el progreso.
+
+
+
+🟢 Identificar actividades completadas.
+
+
+
+🟡 Identificar actividades en curso.
+
+
+
+🔴 Identificar actividades vencidas.
+
+
+
+⚪ Identificar actividades pendientes.
+
+
+
+📅 Consultar días restantes.
+
+
+
+⭐ Identificar prioridad.
+
+
+
+🔎 Consultar información de las actividades.
+
+
+
+📊 Calcular el promedio de progreso.
+
+
+
+📱 Visualizar las actividades mediante una interfaz desarrollada con Jetpack Compose.
+
+
+
+🔗 Trazabilidad del proyecto
+
+
+
+svg
+
+
+
+Los productos de SCRUM y Pruebas de Software mantienen una relación entre los requisitos y las pruebas:
+
+
+
+Requisito
+
+&#x20;  ↓
+
+Historia de usuario
+
+&#x20;  ↓
+
+Criterio de aceptación
+
+&#x20;  ↓
+
+Riesgo
+
+&#x20;  ↓
+
+Caso de prueba
+
+&#x20;  ↓
+
+Resultado
+
+&#x20;  ↓
+
+Defecto
+
+
+
+
+
+svg
+
+
+
+Esta trazabilidad permite comprobar que las funcionalidades definidas tengan pruebas asociadas.
+
+
+
+🧑‍💻 Control de versiones
+
+
+
+svg
+
+
+
+El proyecto utiliza Git y GitHub para controlar los cambios realizados durante el desarrollo.
+
+
+
+Se utilizan ramas para organizar el trabajo y mantener separados los cambios realizados durante el proceso de desarrollo.
+
+
+
+📁 Entregables SCRUM
+
+
+
+svg
+
+
+
+Los documentos correspondientes a las Semanas 2 y 3 se encuentran en:
+
+
+
+ENTREGABLES\_SCRUM/
+
+
+
+
+
+svg
+
+
+
+Semana 2
+
+
+
+svg
+
+
+
+Historias de usuario.
+
+
+
+Criterios de aceptación.
+
+
+
+Product Backlog.
+
+
+
+Definition of Ready.
+
+
+
+Definition of Done.
+
+
+
+Matriz de riesgos.
+
+
+
+Plan de pruebas v1.
+
+
+
+Matriz de trazabilidad v1.
+
+
+
+Revisión entre pares.
+
+
+
+Semana 3
+
+
+
+svg
+
+
+
+Casos de prueba.
+
+
+
+Partición de equivalencia.
+
+
+
+Valores límite.
+
+
+
+Tabla de decisión.
+
+
+
+Transición de estados.
+
+
+
+Caso de uso.
+
+
+
+Datos de prueba.
+
+
+
+Ejecución simulada.
+
+
+
+Registro de defectos.
+
+
+
+Reporte de defecto.
+
+
+
+Matriz de trazabilidad actualizada.
+
+
+
+Ticket de salida.
+
+
+
+Registro de cambios.
+
+
+
+📌 Estado del proyecto
+
+
+
+svg
+
+
+
+Mi Formación CTMA se encuentra en desarrollo académico como parte del programa de formación ADSO.
+
+
+
+Actualmente el proyecto cuenta con:
+
+
+Desarrollo Android de las Semanas 1, 2, 3, 4, 6, 7, 8 y 9.
+
+
+
+Interfaz desarrollada con Kotlin y Jetpack Compose.
+
+
+
+Componentes reutilizables.
+
+
+
+Pantallas para consultar actividades y ver su detalle.
+
+
+
+Formulario para crear nuevas actividades.
+
+
+
+Manejo de estado mediante FormularioActividadUiState.
+
+
+
+Validación de título, descripción, fecha y progreso.
+
+
+
+ActividadesViewModel para gestionar las actividades.
+
+
+
+Navegación entre lista, creación y detalle.
+
+
+
+Conservación del estado del formulario mediante rememberSaveable.
+
+
+
+Pruebas unitarias para las validaciones de la Semana 4.
+
+
+
+Reglas para gestionar estados y progreso.
+
+
+
+Documentación de SCRUM de las Semanas 2 y 3.
+
+
+
+Planificación de pruebas.
+
+
+
+Casos de prueba.
+
+
+
+Matrices de trazabilidad.
+
+
+
+Gestión y documentación de defectos.
+
+
+
+👩‍💻 Proyecto académico
+
+
+
+svg
+
+
+
+Proyecto: Mi Formación CTMA Tecnología: Kotlin + Jetpack Compose Entorno: Android Studio Metodología: SCRUM Área: Desarrollo de Software y Pruebas de Software Programa: Análisis y Desarrollo de Software (ADSO)
+

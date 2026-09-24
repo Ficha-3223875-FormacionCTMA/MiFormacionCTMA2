@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "week6-v1-reportactma",
+    "entities": [
+      {
+        "tableName": "categorias",
+        "fields": [
+          {"fieldPath": "id", "columnName": "id", "affinity": "TEXT", "notNull": true},
+          {"fieldPath": "nombre", "columnName": "nombre", "affinity": "TEXT", "notNull": true}
+        ],
+        "primaryKey": {"columnNames": ["id"], "autoGenerate": false}
+      },
+      {
+        "tableName": "reportes",
+        "fields": [
+          {"fieldPath": "id", "columnName": "id", "affinity": "TEXT", "notNull": true},
+          {"fieldPath": "titulo", "columnName": "titulo", "affinity": "TEXT", "notNull": true},
+          {"fieldPath": "categoriaId", "columnName": "categoriaId", "affinity": "TEXT", "notNull": false}
+        ],
+        "primaryKey": {"columnNames": ["id"], "autoGenerate": false}
+      }
+    ]
+  }
+}

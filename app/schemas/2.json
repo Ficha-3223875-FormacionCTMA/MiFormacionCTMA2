@@ -1,0 +1,32 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "entities": [
+      {
+        "tableName": "categorias",
+        "fields": [
+          {"fieldPath": "id", "columnName": "id", "affinity": "TEXT", "notNull": true},
+          {"fieldPath": "nombre", "columnName": "nombre", "affinity": "TEXT", "notNull": true}
+        ],
+        "primaryKey": {"columnNames": ["id"], "autoGenerate": false},
+        "indices": [{"name":"index_categorias_nombre","unique":true,"columnNames":["nombre"]}]
+      },
+      {
+        "tableName": "reportes",
+        "fields": [
+          {"fieldPath": "id", "columnName": "id", "affinity": "TEXT", "notNull": true},
+          {"fieldPath": "titulo", "columnName": "titulo", "affinity": "TEXT", "notNull": true},
+          {"fieldPath": "categoriaId", "columnName": "categoriaId", "affinity": "TEXT", "notNull": false},
+          {"fieldPath": "resuelto", "columnName": "resuelto", "affinity": "INTEGER", "notNull": true, "defaultValue":"0"}
+        ],
+        "primaryKey": {"columnNames": ["id"], "autoGenerate": false},
+        "indices": [
+          {"name":"index_reportes_titulo","unique":false,"columnNames":["titulo"]},
+          {"name":"index_reportes_categoriaId","unique":false,"columnNames":["categoriaId"]}
+        ],
+        "foreignKeys": [{"table":"categorias","columns":["categoriaId"],"referencedColumns":["id"],"onDelete":"SET NULL","onUpdate":"NO ACTION"}]
+      }
+    ]
+  }
+}
