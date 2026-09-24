@@ -225,3 +225,65 @@ La aplicación fue ejecutada en un dispositivo virtual **Medium Tablet API 35** 
 ## Resultado Semana 3
 
 Se logró implementar una interfaz organizada mediante componentes reutilizables en Jetpack Compose. Las pruebas realizadas permitieron comprobar que la información de las actividades se visualiza correctamente en diferentes condiciones y tamaños de pantalla.
+---
+
+## Semana 7 - Corrutinas, Flow, StateFlow y ciclo de vida
+
+El incremento de Semana 7 continúa sobre la persistencia validada en Semana 6 sin reemplazar Room ni DataStore.
+
+### Arquitectura reactiva
+
+`Room / DataStore -> Repository -> Flow -> ViewModel -> StateFlow -> Compose`
+
+- Room continúa como fuente única de verdad de las actividades.
+- `ActividadDataSource` desacopla el ViewModel de la implementación real y permite repositorios falsos en pruebas.
+- La búsqueda usa `flatMapLatest`, por lo que una búsqueda nueva cancela la colección anterior.
+- `ListadoUiState` representa exclusivamente `Cargando`, `Contenido`, `Vacio` o `Error`.
+- `OperacionUiState` representa `Inactiva`, `EnCurso`, `Exitosa` o `Fallida` para guardar/editar/eliminar.
+- Los flujos finales usan `stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ...)`.
+- Compose recolecta con `collectAsStateWithLifecycle`.
+- No se usa `GlobalScope`, `Thread.sleep` ni se fuerza `Dispatchers.IO` en el ViewModel.
+- DataStore conserva orden, filtro de prioridad y modo de visualización.
+
+### Pruebas Semana 7
+
+Las pruebas unitarias usan `runTest`, repositorios falsos y tiempo virtual. Cubren transición Cargando -> Vacío, actualización reactiva tras insertar, cancelación de búsqueda obsoleta, combinación con filtro persistente y recuperación Error -> Reintentar -> Contenido.
+
+### Decisión de dispatcher
+
+Room y DataStore ya exponen APIs asíncronas (`suspend`/`Flow`), por lo que no se añade `Dispatchers.IO` por reflejo en el ViewModel. Si en incrementos posteriores aparece una API realmente bloqueante, la capa que la encapsule deberá hacerla main-safe e inyectar el dispatcher correspondiente.
+
+### Uso de IA validado
+
+Se utilizó asistencia de IA para apoyar la implementación y documentación. Cada cambio debe validarse mediante compilación, pruebas automatizadas y ejecución en Android Studio antes de fusionarse a la rama principal.
+
+---
+
+## Incremento acumulado Semanas 7, 8 y 9
+
+### Semana 7 · Corrutinas y estado reactivo
+- Flow/StateFlow, `viewModelScope`, `stateIn(WhileSubscribed(5_000))`.
+- `ListadoUiState` y `OperacionUiState` separados.
+- búsqueda cancelable con `flatMapLatest`, preferencias DataStore y `collectAsStateWithLifecycle`.
+- pruebas deterministas con `runTest`, sin `Thread.sleep`.
+
+### Semana 8 · Servicios web
+- Retrofit + kotlinx.serialization + OkHttp con timeouts.
+- DTO separado de Entity/dominio y `RemoteActividadDataSource`.
+- Room permanece como fuente canónica; refresh transaccional y estado separado.
+- token de sesión inyectado; sin credenciales reales.
+- MockWebServer para 200, vacío, 401, 500, JSON inválido y timeout.
+
+### Semana 9 · Dispositivo y seguridad
+- `EvidenciaEntity`, DAO y migración v2→v3.
+- Photo Picker sin permiso general de galería.
+- captura con `TakePicture` + FileProvider/content URI.
+- validación MIME/tamaño, vista previa, reemplazo, eliminación y sincronización.
+- notificaciones solo por acción del usuario en Android 13+.
+- sabores `dev`, `stage`, `prod`; producción HTTPS y sin secretos.
+
+### Pruebas de Software y SCRUM · Semana 8
+La guía paralela de automatización está en `pruebas_software_semana8/` para no mezclar Node/Vitest/Supertest con el módulo Android.
+
+### Ejecución Android
+Selecciona `devDebug` para trabajar con un backend local en `10.0.2.2:8080`. Las URLs stage/prod son marcadores `.invalid` porque las guías no proporcionan endpoints institucionales reales.

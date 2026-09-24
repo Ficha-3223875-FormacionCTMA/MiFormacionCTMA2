@@ -17,6 +17,9 @@ interface ActividadDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(actividad: ActividadEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertarTodas(actividades: List<ActividadEntity>)
+
     @Update
     suspend fun actualizar(actividad: ActividadEntity)
 
@@ -54,4 +57,10 @@ interface ActividadDao {
 
     @Query("DELETE FROM actividades")
     suspend fun eliminarTodas()
+
+    @Transaction
+    suspend fun reemplazarTodas(actividades: List<ActividadEntity>) {
+        eliminarTodas()
+        insertarTodas(actividades)
+    }
 }
